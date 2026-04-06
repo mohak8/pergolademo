@@ -3,22 +3,22 @@ import { Canvas } from '@react-three/fiber'
 import { ContactShadows, Environment, CameraControls } from '@react-three/drei'
 import * as THREE from 'three'
 import Box from './Box' // This holds our modular Pergola assembly
+import useStore from '../../store'
 
 export default function Scene() {
   const controlsRef = useRef()
+  const activeSide = useStore((state) => state.activeSide)
 
-  // Ensure camera target and position are explicitly bound on mount
   useEffect(() => {
     if (controlsRef.current) {
-      // (cameraX, cameraY, cameraZ, focusX, focusY, focusZ, animate)
-      controlsRef.current.setLookAt(0, 2.5, 8, 0, 1.5, 0, false)
+      // The "true" argument at the end makes this a smooth, cinematic transition rather than a hard teleport
+      controlsRef.current.setLookAt(0, 1, 4.5, 0, 0, 0, true)
     }
-  }, [])
+  }, [activeSide])
 
   return (
     <Canvas
-      shadows
-      camera={{ position: [0, 3.2, 7], fov: 50 }}
+      camera={{ position: [0, 1, 4.5], fov: 80 }}
       gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }}
       className="w-full h-full"
     >
@@ -27,15 +27,11 @@ export default function Scene() {
       <ambientLight intensity={0.5} />
 
       <directionalLight
-        castShadow
         position={[4, 4, 4]}
         intensity={1.5}
-        shadow-mapSize={[2048, 2048]}
-      >
-        <orthographicCamera attach="shadow-camera" args={[-5, 5, 5, -5, 1, 20]} />
-      </directionalLight>
+      />
 
-      {/* Fill Light to soften shadows */}
+      {/* Fill Light to soften ambient lighting */}
       <directionalLight position={[-4, 4, -4]} intensity={0.4} />
 
       <Suspense fallback={null}>
@@ -43,17 +39,7 @@ export default function Scene() {
         <Box />
       </Suspense>
 
-      {/* High Quality Contact Shadows perfectly grounded at 0 */}
-      <ContactShadows
-        position={[0, 0, 0]}
-        opacity={0.7}
-        scale={12}
-        blur={2.5}
-        far={2}
-        color="#1f2937"
-      />
 
-      {/* Keep the camera completely stationary, just allow static panning restrictions if user grabs it */}
       <CameraControls
         ref={controlsRef}
         makeDefault
@@ -61,7 +47,6 @@ export default function Scene() {
         maxPolarAngle={Math.PI / 2 - 0.02}
         minDistance={3}
         maxDistance={15}
-        target={[0, 1.2, 0]}
       />
     </Canvas>
   )

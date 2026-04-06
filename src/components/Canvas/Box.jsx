@@ -59,7 +59,7 @@ export default function Pergola() {
   })
 
   return (
-    <animated.group rotation-y={rotationY}>
+    <animated.group position={[0, -1, 0]} rotation-y={rotationY}>
       {/* 3D Floor Markers (Clickable) */}
       <Text
         position={[0, 0.01, 2.5]}
