@@ -18,7 +18,7 @@ export default function Scene() {
   return (
     <Canvas
       shadows
-      camera={{ position: [0, 3.5, 8], fov: 50 }}
+      camera={{ position: [0, 3.2, 7], fov: 50 }}
       gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }}
       className="w-full h-full"
     >
@@ -28,7 +28,7 @@ export default function Scene() {
 
       <directionalLight
         castShadow
-        position={[4, 8, 4]}
+        position={[4, 4, 4]}
         intensity={1.5}
         shadow-mapSize={[2048, 2048]}
       >
