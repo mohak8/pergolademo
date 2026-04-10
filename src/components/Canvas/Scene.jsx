@@ -11,7 +11,6 @@ export default function Scene() {
 
   useEffect(() => {
     if (controlsRef.current) {
-      // The "true" argument at the end makes this a smooth, cinematic transition rather than a hard teleport
       controlsRef.current.setLookAt(0, 1, 4.5, 0, 0, 0, true)
     }
   }, [activeSide])
@@ -45,7 +44,7 @@ export default function Scene() {
         makeDefault
         minPolarAngle={Math.PI / 6}
         maxPolarAngle={Math.PI / 2 - 0.02}
-        minDistance={3}
+        minDistance={0.1}
         maxDistance={15}
       />
     </Canvas>

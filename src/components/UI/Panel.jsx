@@ -3,8 +3,8 @@ import useStore from '../../store'
 
 export default function Panel() {
   const { 
-    activeSide, screenA, screenB, screenC, screenD, 
-    setActiveSide, toggleScreenA, toggleScreenB, toggleScreenC, toggleScreenD 
+    activeSide, screenA, screenB, screenC, screenD, size,
+    setActiveSide, toggleScreenA, toggleScreenB, toggleScreenC, toggleScreenD, setSize
   } = useStore()
 
   const tabs = [
@@ -22,6 +22,24 @@ export default function Panel() {
       </div>
 
       <div className="flex flex-col gap-6">
+        {/* Size Selection */}
+        <section>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Model Size</h2>
+          <div className="grid grid-cols-2 gap-1 bg-gray-100 p-1 rounded-lg">
+            {['3x3', '4x3'].map((s) => (
+              <button
+                key={s}
+                onClick={() => setSize(s)}
+                className={`flex-1 py-3 text-sm font-bold rounded-md transition-all ${
+                  size === s ? 'bg-white shadow-sm text-slate-900 border-b-[3px] border-slate-900' : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                {s} Pergola
+              </button>
+            ))}
+          </div>
+        </section>
+
         {/* View Controls - 4 Tabs */}
         <section>
           <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">View Focus</h2>

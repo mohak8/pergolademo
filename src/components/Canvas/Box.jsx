@@ -5,14 +5,22 @@ import useStore from '../../store'
 import { useSpring, animated } from '@react-spring/three'
 
 export default function Pergola() {
-  const { activeSide, screenA, screenB, screenC, screenD, setActiveSide } = useStore()
+  const { activeSide, screenA, screenB, screenC, screenD, setActiveSide, size } = useStore()
 
-  // Load models directly from the public folder
-  const { scene: frameRaw } = useGLTF('/pergola/3x3/3x3.glb')
-  const { scene: screenRaw } = useGLTF('/pergola/3x3/3x3_Screen.glb')
+  // Only dispatch the network load for the specific size requested!
+  const { scene: frameRaw } = useGLTF(`/pergola/${size}/${size}.glb`)
+
+  // Conditionally load the Long-Side Screen (Sides A & C)
+  const { scene: longScreenRaw } = useGLTF(`/pergola/${size}/${size}_Screen.glb`)
+
+  // The Short-Side Screen (Sides B & D) safely recycles the 3-meter file always.
+  const { scene: shortScreenRaw } = useGLTF('/pergola/3x3/3x3_Screen.glb')
 
   // Ensure graceful handle of cloning the geometry with shadows
-  const applyShadows = (clone) => {
+  const safeClone = (rawGeometry) => {
+    if (!rawGeometry) return new THREE.Group()
+
+    const clone = rawGeometry.clone()
     clone.traverse((child) => {
       if (child.isMesh) {
         child.castShadow = true
@@ -22,11 +30,32 @@ export default function Pergola() {
     return clone
   }
 
-  const frame = useMemo(() => applyShadows(frameRaw.clone()), [frameRaw])
-  const cloneA = useMemo(() => applyShadows(screenRaw.clone()), [screenRaw])
-  const cloneB = useMemo(() => applyShadows(screenRaw.clone()), [screenRaw])
-  const cloneC = useMemo(() => applyShadows(screenRaw.clone()), [screenRaw])
-  const cloneD = useMemo(() => applyShadows(screenRaw.clone()), [screenRaw])
+  // Switch Master Frame scientifically safely
+  const frame = useMemo(() => safeClone(frameRaw), [frameRaw])
+
+  // Map respective screens
+  const cloneA = useMemo(() => safeClone(longScreenRaw), [longScreenRaw])
+  const cloneB = useMemo(() => safeClone(shortScreenRaw), [shortScreenRaw])
+  const cloneC = useMemo(() => safeClone(longScreenRaw), [longScreenRaw])
+  const cloneD = useMemo(() => safeClone(shortScreenRaw), [shortScreenRaw])
+
+  // Coordinate Dictionary Mapping
+  const configs = {
+    '3x3': {
+      A: { position: [0, 1.65, 1.34], rotation: [0, 0, 0] },
+      B: { position: [1.42, 1.65, -0.08], rotation: [0, -Math.PI / 2, 0] },
+      C: { position: [0, 1.65, -1.50], rotation: [0, Math.PI, 0] },
+      D: { position: [-1.42, 1.65, -0.08], rotation: [0, Math.PI / 2, 0] }
+    },
+    '4x3': {
+      A: { position: [0.05, 1.64, 1.345], rotation: [0, 0, 0] },
+      B: { position: [1.905, 1.64, -0.08], rotation: [0, -Math.PI / 2, 0] },
+      C: { position: [-0.09, 1.64, -1.505], rotation: [0, Math.PI, 0] },
+      D: { position: [-1.955, 1.64, -0.08], rotation: [0, Math.PI / 2, 0] }
+    }
+  }
+
+  const actConfig = configs[size]
 
   // Shortest Path Rotation Algorithm
   const [targetY, setTargetY] = useState(0)
@@ -118,8 +147,8 @@ export default function Pergola() {
       {screenA && (
         <primitive
           object={cloneA}
-          position={[0, 1.65, 1.34]}
-          rotation={[0, 0, 0]}
+          position={actConfig.A.position}
+          rotation={actConfig.A.rotation}
           castShadow
           receiveShadow
         />
@@ -129,8 +158,8 @@ export default function Pergola() {
       {screenB && (
         <primitive
           object={cloneB}
-          position={[1.42, 1.65, -0.08]}
-          rotation={[0, -Math.PI / 2, 0]}
+          position={actConfig.B.position}
+          rotation={actConfig.B.rotation}
           castShadow
           receiveShadow
         />
@@ -140,8 +169,8 @@ export default function Pergola() {
       {screenC && (
         <primitive
           object={cloneC}
-          position={[0, 1.65, -1.50]}
-          rotation={[0, Math.PI, 0]}
+          position={actConfig.C.position}
+          rotation={actConfig.C.rotation}
           castShadow
           receiveShadow
         />
@@ -151,8 +180,8 @@ export default function Pergola() {
       {screenD && (
         <primitive
           object={cloneD}
-          position={[-1.42, 1.65, -0.08]}
-          rotation={[0, Math.PI / 2, 0]}
+          position={actConfig.D.position}
+          rotation={actConfig.D.rotation}
           castShadow
           receiveShadow
         />
@@ -161,6 +190,4 @@ export default function Pergola() {
   )
 }
 
-// Preload models for instantaneous rendering
-useGLTF.preload('/pergola/3x3/3x3.glb')
-useGLTF.preload('/pergola/3x3/3x3_Screen.glb')
+
