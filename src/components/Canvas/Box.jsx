@@ -1,5 +1,5 @@
 import React, { useMemo, useEffect, useState, useRef } from 'react'
-import { useGLTF, Text } from '@react-three/drei'
+import { useGLTF, Html } from '@react-three/drei'
 import * as THREE from 'three'
 import useStore from '../../store'
 import { useSpring, animated } from '@react-spring/three'
@@ -106,51 +106,50 @@ export default function Pergola() {
 
   return (
     <animated.group position={[0, -1, 0]} rotation-y={rotationY}>
-      {/* 3D Floor Markers (Clickable) */}
-      <Text
-        position={[0, 0.01, 2.5]}
-        rotation={[-Math.PI / 2, 0, 0]}
-        fontSize={0.5}
-        color={activeSide === 'A' ? '#000000' : '#cccccc'}
-        onClick={() => setActiveSide('A')}
-        onPointerOver={() => (document.body.style.cursor = 'pointer')}
-        onPointerOut={() => (document.body.style.cursor = 'auto')}
-      >
-        A
-      </Text>
-      <Text
-        position={[2.5, 0.01, 0]}
-        rotation={[-Math.PI / 2, 0, Math.PI / 2]}
-        fontSize={0.5}
-        color={activeSide === 'B' ? '#000000' : '#cccccc'}
-        onClick={() => setActiveSide('B')}
-        onPointerOver={() => (document.body.style.cursor = 'pointer')}
-        onPointerOut={() => (document.body.style.cursor = 'auto')}
-      >
-        B
-      </Text>
-      <Text
-        position={[0, 0.01, -2.5]}
-        rotation={[-Math.PI / 2, 0, Math.PI]}
-        fontSize={0.5}
-        color={activeSide === 'C' ? '#000000' : '#cccccc'}
-        onClick={() => setActiveSide('C')}
-        onPointerOver={() => (document.body.style.cursor = 'pointer')}
-        onPointerOut={() => (document.body.style.cursor = 'auto')}
-      >
-        C
-      </Text>
-      <Text
-        position={[-2.5, 0.01, 0]}
-        rotation={[-Math.PI / 2, 0, -Math.PI / 2]}
-        fontSize={0.5}
-        color={activeSide === 'D' ? '#000000' : '#cccccc'}
-        onClick={() => setActiveSide('D')}
-        onPointerOver={() => (document.body.style.cursor = 'pointer')}
-        onPointerOut={() => (document.body.style.cursor = 'auto')}
-      >
-        D
-      </Text>
+      {/* Premium HTML Markers (Always face camera, legible from any angle) */}
+      <Html position={[0, 0, 2.5]} center>
+        <div
+          onClick={() => setActiveSide('A')}
+          className={`cursor-pointer w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold shadow-md transition-all ${
+            activeSide === 'A' ? 'bg-black text-white scale-125' : 'bg-white text-black border border-gray-200 hover:scale-110'
+          }`}
+        >
+          A
+        </div>
+      </Html>
+
+      <Html position={[currentSize === '6x3' ? 3.5 : (currentSize === '4x3' ? 2.5 : 2.0), 0, 0]} center>
+        <div
+          onClick={() => setActiveSide('B')}
+          className={`cursor-pointer w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold shadow-md transition-all ${
+            activeSide === 'B' ? 'bg-black text-white scale-125' : 'bg-white text-black border border-gray-200 hover:scale-110'
+          }`}
+        >
+          B
+        </div>
+      </Html>
+
+      <Html position={[0, 0, -2.5]} center>
+        <div
+          onClick={() => setActiveSide('C')}
+          className={`cursor-pointer w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold shadow-md transition-all ${
+            activeSide === 'C' ? 'bg-black text-white scale-125' : 'bg-white text-black border border-gray-200 hover:scale-110'
+          }`}
+        >
+          C
+        </div>
+      </Html>
+
+      <Html position={[currentSize === '6x3' ? -3.5 : (currentSize === '4x3' ? -2.5 : -2.0), 0, 0]} center>
+        <div
+          onClick={() => setActiveSide('D')}
+          className={`cursor-pointer w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold shadow-md transition-all ${
+            activeSide === 'D' ? 'bg-black text-white scale-125' : 'bg-white text-black border border-gray-200 hover:scale-110'
+          }`}
+        >
+          D
+        </div>
+      </Html>
 
       {/* Main Framework */}
       <primitive

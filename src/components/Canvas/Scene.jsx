@@ -8,16 +8,19 @@ import useStore from '../../store'
 export default function Scene() {
   const controlsRef = useRef()
   const activeSide = useStore((state) => state.activeSide)
+  const currentSize = useStore((state) => state.currentSize)
 
   useEffect(() => {
     if (controlsRef.current) {
-      controlsRef.current.setLookAt(0, 1, 4.5, 0, 0, 0, true)
+      // Dynamically zoom out to fit the larger 6x3 model without locking user interactions
+      const zOffset = currentSize === '6x3' ? 6.5 : 4.8
+      controlsRef.current.setLookAt(0, 1, zOffset, 0, 0, 0, true)
     }
-  }, [activeSide])
+  }, [activeSide, currentSize])
 
   return (
     <Canvas
-      camera={{ position: [0, 1, 4.5], fov: 80 }}
+      camera={{ position: [0, 1.5, 4.5], fov: 80 }}
       gl={{ antialias: true, toneMapping: THREE.ACESFilmicToneMapping }}
       className="w-full h-full"
     >

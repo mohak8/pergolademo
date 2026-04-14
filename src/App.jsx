@@ -13,9 +13,9 @@ function App() {
         dataInterpolation={(p) => `LOADING... ${p.toFixed(0)}%`}
         dataStyles={{ fontSize: '13px', fontWeight: 'bold', letterSpacing: '0.1em', color: '#0f172a', textTransform: 'uppercase' }}
       />
-      <div className="relative h-screen flex font-sans bg-gray-100 overflow-hidden text-slate-800">
+      <div className="relative h-screen w-full flex flex-col md:flex-row font-sans bg-gray-100 overflow-hidden text-slate-800">
         <Panel />
-        <div className="flex-1">
+        <div className="h-[60vh] md:h-screen w-full flex-1 relative z-0">
           <Scene />
         </div>
       </div>
