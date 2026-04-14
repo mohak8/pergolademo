@@ -3,8 +3,8 @@ import useStore from '../../store'
 
 export default function Panel() {
   const { 
-    activeSide, screenA, screenB, screenC, screenD, size,
-    setActiveSide, toggleScreenA, toggleScreenB, toggleScreenC, toggleScreenD, setSize
+    activeSide, screenA_Left, screenA_Right, screenB, screenC_Left, screenC_Right, screenD, currentSize,
+    setActiveSide, toggleScreenA_Left, toggleScreenA_Right, toggleScreenB, toggleScreenC_Left, toggleScreenC_Right, toggleScreenD, setSize
   } = useStore()
 
   const tabs = [
@@ -26,12 +26,12 @@ export default function Panel() {
         <section>
           <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Model Size</h2>
           <div className="grid grid-cols-2 gap-1 bg-gray-100 p-1 rounded-lg">
-            {['3x3', '4x3'].map((s) => (
+            {['3x3', '4x3', '6x3'].map((s) => (
               <button
                 key={s}
                 onClick={() => setSize(s)}
                 className={`flex-1 py-3 text-sm font-bold rounded-md transition-all ${
-                  size === s ? 'bg-white shadow-sm text-slate-900 border-b-[3px] border-slate-900' : 'text-slate-500 hover:text-slate-700'
+                  currentSize === s ? 'bg-white shadow-sm text-slate-900 border-b-[3px] border-slate-900' : 'text-slate-500 hover:text-slate-700'
                 }`}
               >
                 {s} Pergola
@@ -64,12 +64,30 @@ export default function Panel() {
           <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Features</h2>
           
           <div className="space-y-4">
-            {activeSide === 'A' && (
+            {activeSide === 'A' && currentSize === '6x3' && (
+              <>
+                <ScreenToggle 
+                  title="Add Screen (Left Bay)" 
+                  desc="Add screen to Side A (Left)" 
+                  isOn={screenA_Left} 
+                  onToggle={toggleScreenA_Left} 
+                  colorClass="bg-blue-600" 
+                />
+                <ScreenToggle 
+                  title="Add Screen (Right Bay)" 
+                  desc="Add screen to Side A (Right)" 
+                  isOn={screenA_Right} 
+                  onToggle={toggleScreenA_Right} 
+                  colorClass="bg-blue-600" 
+                />
+              </>
+            )}
+            {activeSide === 'A' && currentSize !== '6x3' && (
               <ScreenToggle 
                 title="Front Screen" 
                 desc="Add screen to Side A" 
-                isOn={screenA} 
-                onToggle={toggleScreenA} 
+                isOn={screenA_Left} 
+                onToggle={toggleScreenA_Left} 
                 colorClass="bg-blue-600" 
               />
             )}
@@ -82,12 +100,30 @@ export default function Panel() {
                 colorClass="bg-indigo-600" 
               />
             )}
-            {activeSide === 'C' && (
+            {activeSide === 'C' && currentSize === '6x3' && (
+              <>
+                <ScreenToggle 
+                  title="Add Screen (Left Bay)" 
+                  desc="Add screen to Side C (Left)" 
+                  isOn={screenC_Left} 
+                  onToggle={toggleScreenC_Left} 
+                  colorClass="bg-purple-600" 
+                />
+                <ScreenToggle 
+                  title="Add Screen (Right Bay)" 
+                  desc="Add screen to Side C (Right)" 
+                  isOn={screenC_Right} 
+                  onToggle={toggleScreenC_Right} 
+                  colorClass="bg-purple-600" 
+                />
+              </>
+            )}
+            {activeSide === 'C' && currentSize !== '6x3' && (
               <ScreenToggle 
                 title="Back Screen" 
                 desc="Add screen to Side C" 
-                isOn={screenC} 
-                onToggle={toggleScreenC} 
+                isOn={screenC_Left} 
+                onToggle={toggleScreenC_Left} 
                 colorClass="bg-purple-600" 
               />
             )}

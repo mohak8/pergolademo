@@ -5,13 +5,20 @@ import useStore from '../../store'
 import { useSpring, animated } from '@react-spring/three'
 
 export default function Pergola() {
-  const { activeSide, screenA, screenB, screenC, screenD, setActiveSide, size } = useStore()
+  const {
+    activeSide, screenB, screenD, setActiveSide, currentSize,
+    screenA_Left, screenA_Right, screenC_Left, screenC_Right
+  } = useStore()
 
   // Only dispatch the network load for the specific size requested!
-  const { scene: frameRaw } = useGLTF(`/pergola/${size}/${size}.glb`)
+  const { scene: frameRaw } = useGLTF(`/pergola/${currentSize}/${currentSize}.glb`)
 
   // Conditionally load the Long-Side Screen (Sides A & C)
-  const { scene: longScreenRaw } = useGLTF(`/pergola/${size}/${size}_Screen.glb`)
+  // For 6x3, we recycle the 3x3 screen twice per side
+  const screensRawPath = currentSize === '6x3'
+    ? '/pergola/3x3/3x3_Screen.glb'
+    : `/pergola/${currentSize}/${currentSize}_Screen.glb`
+  const { scene: longScreenRaw } = useGLTF(screensRawPath)
 
   // The Short-Side Screen (Sides B & D) safely recycles the 3-meter file always.
   const { scene: shortScreenRaw } = useGLTF('/pergola/3x3/3x3_Screen.glb')
@@ -33,10 +40,12 @@ export default function Pergola() {
   // Switch Master Frame scientifically safely
   const frame = useMemo(() => safeClone(frameRaw), [frameRaw])
 
-  // Map respective screens
-  const cloneA = useMemo(() => safeClone(longScreenRaw), [longScreenRaw])
+  // Map respective screens (Double clones for A and C to avoid THREE UUID conflicts in 6x3)
+  const cloneA_Left = useMemo(() => safeClone(longScreenRaw), [longScreenRaw])
+  const cloneA_Right = useMemo(() => safeClone(longScreenRaw), [longScreenRaw])
   const cloneB = useMemo(() => safeClone(shortScreenRaw), [shortScreenRaw])
-  const cloneC = useMemo(() => safeClone(longScreenRaw), [longScreenRaw])
+  const cloneC_Left = useMemo(() => safeClone(longScreenRaw), [longScreenRaw])
+  const cloneC_Right = useMemo(() => safeClone(longScreenRaw), [longScreenRaw])
   const cloneD = useMemo(() => safeClone(shortScreenRaw), [shortScreenRaw])
 
   // Coordinate Dictionary Mapping
@@ -52,10 +61,18 @@ export default function Pergola() {
       B: { position: [1.905, 1.64, -0.08], rotation: [0, -Math.PI / 2, 0] },
       C: { position: [-0.09, 1.64, -1.505], rotation: [0, Math.PI, 0] },
       D: { position: [-1.955, 1.64, -0.08], rotation: [0, Math.PI / 2, 0] }
+    },
+    '6x3': {
+      A_Left: { position: [-1.5, 1.65, 1.34], rotation: [0, 0, 0] },
+      A_Right: { position: [1.5, 1.65, 1.34], rotation: [0, 0, 0] },
+      B: { position: [2.92, 1.65, -0.08], rotation: [0, -Math.PI / 2, 0] },
+      C_Left: { position: [-1.5, 1.65, -1.5], rotation: [0, Math.PI, 0] },
+      C_Right: { position: [1.5, 1.65, -1.5], rotation: [0, Math.PI, 0] },
+      D: { position: [-2.92, 1.65, -0.08], rotation: [0, Math.PI / 2, 0] }
     }
   }
 
-  const actConfig = configs[size]
+  const actConfig = configs[currentSize]
 
   // Shortest Path Rotation Algorithm
   const [targetY, setTargetY] = useState(0)
@@ -144,14 +161,13 @@ export default function Pergola() {
       />
 
       {/* Side A: Front Screen */}
-      {screenA && (
-        <primitive
-          object={cloneA}
-          position={actConfig.A.position}
-          rotation={actConfig.A.rotation}
-          castShadow
-          receiveShadow
-        />
+      {currentSize === '6x3' ? (
+        <>
+          {screenA_Left && <primitive object={cloneA_Left} position={actConfig.A_Left.position} rotation={actConfig.A_Left.rotation} castShadow receiveShadow />}
+          {screenA_Right && <primitive object={cloneA_Right} position={actConfig.A_Right.position} rotation={actConfig.A_Right.rotation} castShadow receiveShadow />}
+        </>
+      ) : (
+        screenA_Left && <primitive object={cloneA_Left} position={actConfig.A.position} rotation={actConfig.A.rotation} castShadow receiveShadow />
       )}
 
       {/* Side B: Right Screen */}
@@ -166,14 +182,13 @@ export default function Pergola() {
       )}
 
       {/* Side C: Back Screen */}
-      {screenC && (
-        <primitive
-          object={cloneC}
-          position={actConfig.C.position}
-          rotation={actConfig.C.rotation}
-          castShadow
-          receiveShadow
-        />
+      {currentSize === '6x3' ? (
+        <>
+          {screenC_Left && <primitive object={cloneC_Left} position={actConfig.C_Left.position} rotation={actConfig.C_Left.rotation} castShadow receiveShadow />}
+          {screenC_Right && <primitive object={cloneC_Right} position={actConfig.C_Right.position} rotation={actConfig.C_Right.rotation} castShadow receiveShadow />}
+        </>
+      ) : (
+        screenC_Left && <primitive object={cloneC_Left} position={actConfig.C.position} rotation={actConfig.C.rotation} castShadow receiveShadow />
       )}
 
       {/* Side D: Left Screen */}
