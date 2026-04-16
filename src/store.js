@@ -8,6 +8,8 @@ const BASE_PRICES = {
 };
 
 const useStore = create((set, get) => ({
+  currentModel: 'Pergola',
+  setModel: (model) => set({ currentModel: model }),
   activeSide: 'A', // 'A', 'B', 'C', 'D'
   currentSize: '3x3', // '3x3', '4x3', '6x3'
   screenA_Left: false,
@@ -17,6 +19,8 @@ const useStore = create((set, get) => ({
   screenC_Right: false,
   screenD: false,
   isBreakdownVisible: false,
+  showDimensions: false,
+  toggleDimensions: () => set((state) => ({ showDimensions: !state.showDimensions })),
   
   setActiveSide: (side) => set({ activeSide: side }),
   setSize: (newSize) => set((state) => {

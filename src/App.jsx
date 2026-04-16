@@ -1,6 +1,7 @@
 import React from 'react'
 import { Loader } from '@react-three/drei'
 import Panel from './components/UI/Panel'
+import Toolbar from './components/UI/Toolbar'
 import Scene from './components/Canvas/Scene'
 
 function App() {
@@ -18,6 +19,7 @@ function App() {
         <div className="h-[60vh] md:h-screen w-full flex-1 relative z-0">
           <Scene />
         </div>
+        <Toolbar />
       </div>
     </>
   )

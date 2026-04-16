@@ -1,27 +1,32 @@
 import React, { useMemo, useEffect, useState, useRef } from 'react'
-import { useGLTF, Html } from '@react-three/drei'
+import { useGLTF, Html, Line } from '@react-three/drei'
 import * as THREE from 'three'
 import useStore from '../../store'
 import { useSpring, animated } from '@react-spring/three'
 
 export default function Pergola() {
   const {
-    activeSide, screenB, screenD, setActiveSide, currentSize,
-    screenA_Left, screenA_Right, screenC_Left, screenC_Right
+    activeSide, screenB, screenD, setActiveSide, currentSize, currentModel,
+    screenA_Left, screenA_Right, screenC_Left, screenC_Right, showDimensions
   } = useStore()
 
+  // TODO[Dynamic Models]: Expand this logic to route GLB paths based on currentModel
+  // Example: if (currentModel === 'Product 1') rootPath = '/product1'
+  // Currently defaulting to '/pergola/' for all models until finalized meshes are provided.
+  const rootPath = '/pergola'
+
   // Only dispatch the network load for the specific size requested!
-  const { scene: frameRaw } = useGLTF(`/pergola/${currentSize}/${currentSize}.glb`)
+  const { scene: frameRaw } = useGLTF(`${rootPath}/${currentSize}/${currentSize}.glb`)
 
   // Conditionally load the Long-Side Screen (Sides A & C)
   // For 6x3, we recycle the 3x3 screen twice per side
   const screensRawPath = currentSize === '6x3'
-    ? '/pergola/3x3/3x3_Screen.glb'
-    : `/pergola/${currentSize}/${currentSize}_Screen.glb`
+    ? `${rootPath}/3x3/3x3_Screen.glb`
+    : `${rootPath}/${currentSize}/${currentSize}_Screen.glb`
   const { scene: longScreenRaw } = useGLTF(screensRawPath)
 
   // The Short-Side Screen (Sides B & D) safely recycles the 3-meter file always.
-  const { scene: shortScreenRaw } = useGLTF('/pergola/3x3/3x3_Screen.glb')
+  const { scene: shortScreenRaw } = useGLTF(`${rootPath}/3x3/3x3_Screen.glb`)
 
   // Ensure graceful handle of cloning the geometry with shadows
   const safeClone = (rawGeometry) => {
@@ -103,6 +108,63 @@ export default function Pergola() {
     rotationY: targetY,
     config: { tension: 60, friction: 15 } // Equivalent smooth easing mathematically
   })
+  const offset = 0.15 // Clean outward offset from geometry
+
+  // 1. The Measurement Engine
+  const pergolaRef = useRef()
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0, depth: 0 })
+
+  useEffect(() => {
+    if (pergolaRef.current) {
+      // Small timeout to allow R3F meshes to fully instantiate in the DOM tree before computing
+      setTimeout(() => {
+        if (!pergolaRef.current) return
+        
+        // Force the 3D engine to calculate exact world positions RIGHT NOW
+        pergolaRef.current.updateWorldMatrix(true, true);
+
+        const box = new THREE.Box3();
+        box.makeEmpty(); // Ensure it starts empty
+
+        pergolaRef.current.traverse((child) => {
+          // Only measure visible, physical meshes. 
+          if (child.isMesh && child.visible) {
+            const name = child.name.toLowerCase();
+            
+            // Aggressive Filtering: Ignore anything that sticks out
+            const isAccessory = name.includes('crank') || name.includes('handle') || name.includes('screen') || name.includes('blind') || name.includes('object001') || name.includes('roof');
+            const isHelper = name.includes('line') || name.includes('measurement');
+
+            // Handle sloppy CAD exports that include other sizes in the same file
+            let isWrongSizeLayer = false;
+            if (currentSize === '3x3') isWrongSizeLayer = name.includes('4x3') || name.includes('6x3');
+            if (currentSize === '4x3') isWrongSizeLayer = name.includes('3x3') || name.includes('6x3');
+            if (currentSize === '6x3') isWrongSizeLayer = name.includes('3x3') || name.includes('4x3');
+
+            if (!isAccessory && !isHelper && !isWrongSizeLayer) {
+              // Calculate the precise bounding box of the geometry itself
+              if (!child.geometry.boundingBox) {
+                child.geometry.computeBoundingBox();
+              }
+              
+              const childBox = child.geometry.boundingBox.clone();
+              // Apply the exact world position/scale to that geometry
+              childBox.applyMatrix4(child.matrixWorld);
+              
+              // Expand our main box to include this piece
+              box.union(childBox);
+            }
+          }
+        });
+
+        const size = box.getSize(new THREE.Vector3());
+        // Add a safety check to ensure we found valid geometry
+        if (size.x > 0) {
+          setDimensions({ width: size.x, height: size.y, depth: size.z });
+        }
+      }, 50)
+    }
+  }, [frame, currentSize, currentModel, screenB, screenD, screenA_Left, screenA_Right, screenC_Left, screenC_Right])
 
   return (
     <animated.group position={[0, -1, 0]} rotation-y={rotationY}>
@@ -125,7 +187,7 @@ export default function Pergola() {
             activeSide === 'B' ? 'bg-black text-white scale-125' : 'bg-white text-black border border-gray-200 hover:scale-110'
           }`}
         >
-          B
+           B
         </div>
       </Html>
 
@@ -151,57 +213,94 @@ export default function Pergola() {
         </div>
       </Html>
 
-      {/* Main Framework */}
-      <primitive
-        object={frame}
-        position={[0, 0, 0]}
-        castShadow
-        receiveShadow
-      />
-
-      {/* Side A: Front Screen */}
-      {currentSize === '6x3' ? (
-        <>
-          {screenA_Left && <primitive object={cloneA_Left} position={actConfig.A_Left.position} rotation={actConfig.A_Left.rotation} castShadow receiveShadow />}
-          {screenA_Right && <primitive object={cloneA_Right} position={actConfig.A_Right.position} rotation={actConfig.A_Right.rotation} castShadow receiveShadow />}
-        </>
-      ) : (
-        screenA_Left && <primitive object={cloneA_Left} position={actConfig.A.position} rotation={actConfig.A.rotation} castShadow receiveShadow />
-      )}
-
-      {/* Side B: Right Screen */}
-      {screenB && (
+      {/* Main Model wrapper for isolating bounding box computation completely */}
+      <group ref={pergolaRef}>
+        {/* Main Framework */}
         <primitive
-          object={cloneB}
-          position={actConfig.B.position}
-          rotation={actConfig.B.rotation}
+          object={frame}
+          position={[0, 0, 0]}
           castShadow
           receiveShadow
         />
+
+        {/* Side A: Front Screen */}
+        {currentSize === '6x3' ? (
+          <>
+            {screenA_Left && <primitive object={cloneA_Left} position={actConfig.A_Left.position} rotation={actConfig.A_Left.rotation} castShadow receiveShadow />}
+            {screenA_Right && <primitive object={cloneA_Right} position={actConfig.A_Right.position} rotation={actConfig.A_Right.rotation} castShadow receiveShadow />}
+          </>
+        ) : (
+          screenA_Left && <primitive object={cloneA_Left} position={actConfig.A.position} rotation={actConfig.A.rotation} castShadow receiveShadow />
+        )}
+
+        {/* Side B: Right Screen */}
+        {screenB && (
+          <primitive
+            object={cloneB}
+            position={actConfig.B.position}
+            rotation={actConfig.B.rotation}
+            castShadow
+            receiveShadow
+          />
+        )}
+
+        {/* Side C: Back Screen */}
+        {currentSize === '6x3' ? (
+          <>
+            {screenC_Left && <primitive object={cloneC_Left} position={actConfig.C_Left.position} rotation={actConfig.C_Left.rotation} castShadow receiveShadow />}
+            {screenC_Right && <primitive object={cloneC_Right} position={actConfig.C_Right.position} rotation={actConfig.C_Right.rotation} castShadow receiveShadow />}
+          </>
+        ) : (
+          screenC_Left && <primitive object={cloneC_Left} position={actConfig.C.position} rotation={actConfig.C.rotation} castShadow receiveShadow />
+        )}
+
+        {/* Side D: Left Screen */}
+        {screenD && (
+          <primitive
+            object={cloneD}
+            position={actConfig.D.position}
+            rotation={actConfig.D.rotation}
+            castShadow
+            receiveShadow
+          />
+        )}
+      </group>
+
+      {/* Dynamic 3D Measurements Overlay */}
+      {showDimensions && dimensions.width > 0 && (
+        <group>
+          {/* 1. The Width Line (Front Floor) */}
+          <Line points={[ [-dimensions.width / 2, 0.05, (dimensions.depth / 2) + offset], [dimensions.width / 2, 0.05, (dimensions.depth / 2) + offset] ]} color="black" lineWidth={1.5} />
+          <Html position={[0, 0.05, (dimensions.depth / 2) + offset]} center zIndexRange={[100, 0]}>
+            <div className="bg-gray-900 text-white text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap tracking-wide pointer-events-none shadow-md">
+              {dimensions.width.toFixed(2)} m
+            </div>
+          </Html>
+
+          {/* 2. The Depth Line (Left Floor) */}
+          <Line points={[ [(-dimensions.width / 2) - offset, 0.05, -dimensions.depth / 2], [(-dimensions.width / 2) - offset, 0.05, dimensions.depth / 2] ]} color="black" lineWidth={1.5} />
+          <Html position={[(-dimensions.width / 2) - offset, 0.05, 0]} center zIndexRange={[100, 0]}>
+            <div className="bg-gray-900 text-white text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap tracking-wide pointer-events-none shadow-md">
+              {dimensions.depth.toFixed(2)} m
+            </div>
+          </Html>
+
+          {/* 3. The Height Line (Back Right Leg) */}
+          <Line points={[ [(dimensions.width / 2) + offset, 0, -dimensions.depth / 2], [(dimensions.width / 2) + offset, dimensions.height, -dimensions.depth / 2] ]} color="black" lineWidth={1.5} />
+          <Html position={[(dimensions.width / 2) + offset, dimensions.height / 2, -dimensions.depth / 2]} center zIndexRange={[100, 0]}>
+            <div className="bg-gray-900 text-white text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap tracking-wide pointer-events-none shadow-md">
+              {dimensions.height.toFixed(2)} m
+            </div>
+          </Html>
+        </group>
       )}
 
-      {/* Side C: Back Screen */}
-      {currentSize === '6x3' ? (
-        <>
-          {screenC_Left && <primitive object={cloneC_Left} position={actConfig.C_Left.position} rotation={actConfig.C_Left.rotation} castShadow receiveShadow />}
-          {screenC_Right && <primitive object={cloneC_Right} position={actConfig.C_Right.position} rotation={actConfig.C_Right.rotation} castShadow receiveShadow />}
-        </>
-      ) : (
-        screenC_Left && <primitive object={cloneC_Left} position={actConfig.C.position} rotation={actConfig.C.rotation} castShadow receiveShadow />
-      )}
-
-      {/* Side D: Left Screen */}
-      {screenD && (
-        <primitive
-          object={cloneD}
-          position={actConfig.D.position}
-          rotation={actConfig.D.rotation}
-          castShadow
-          receiveShadow
-        />
-      )}
     </animated.group>
   )
 }
 
-
+useGLTF.preload('/pergola/3x3/3x3.glb')
+useGLTF.preload('/pergola/3x3/3x3_Screen.glb')
+useGLTF.preload('/pergola/4x3/4x3.glb')
+useGLTF.preload('/pergola/4x3/4x3_Screen.glb')
+useGLTF.preload('/pergola/6x3/6x3.glb')
