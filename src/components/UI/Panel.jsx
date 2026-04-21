@@ -5,11 +5,11 @@ export default function Panel() {
   const {
     currentModel, setModel, activeSide, screenA_Left, screenA_Right, screenB, screenC_Left, screenC_Right, screenD, currentSize,
     setActiveSide, toggleScreenA_Left, toggleScreenA_Right, toggleScreenB, toggleScreenC_Left, toggleScreenC_Right, toggleScreenD, setSize,
-    isBreakdownVisible, toggleBreakdown, getTotalPrice, getBasePrice, getScreenPrice
+    isBreakdownVisible, toggleBreakdown, getTotalPrice, getBasePrice, getScreenPrice,
+    frameColor, setFrameColor, activeTab, setActiveTab
   } = useStore()
 
-  const [activeTab, setActiveTab] = useState('Model')
-  const mainTabs = ['Model', 'Size', 'Sides']
+  const mainTabs = ['Model', 'Size', 'Color', 'Sides']
 
   const sideTabs = [
     { id: 'A', label: 'Side A' },
@@ -88,6 +88,33 @@ export default function Panel() {
                   >
                     <span>{label}</span>
                     {isActive}
+                  </button>
+                )
+              })}
+            </div>
+          </section>
+
+          {/* VIEW: Select Color */}
+          <section className={`${activeTab === 'Color' ? 'block animate-in fade-in slide-in-from-right-4 duration-300' : 'hidden'} md:block md:animate-none`}>
+            <h2 className="text-sm text-gray-900 font-semibold mb-3">Frame Finish</h2>
+            <div className="flex gap-3">
+              {[
+                { hex: '#333333', name: 'Charcoal' },
+                { hex: '#FFFFFF', name: 'White' },
+                { hex: '#8B5A2B', name: 'Wood Finish' }
+              ].map((c) => {
+                const isActive = frameColor === c.hex
+                return (
+                  <button
+                    key={c.hex}
+                    onClick={() => setFrameColor(c.hex)}
+                    className={`py-3 px-3 flex-1 flex flex-col items-center gap-2 text-xs font-semibold rounded-xl border transition-all ${isActive
+                      ? 'bg-[#F8EFEA] border-gray-900 text-gray-900 shadow-sm'
+                      : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
+                      }`}
+                  >
+                    <div className="w-8 h-8 rounded-full shadow-sm border border-gray-300" style={{ backgroundColor: c.hex }}></div>
+                    <span>{c.name}</span>
                   </button>
                 )
               })}

@@ -10,8 +10,12 @@ const BASE_PRICES = {
 const useStore = create((set, get) => ({
   currentModel: 'Pergola',
   setModel: (model) => set({ currentModel: model }),
+  frameColor: '#333333',
+  setFrameColor: (hex) => set({ frameColor: hex }),
   activeSide: 'A', // 'A', 'B', 'C', 'D'
   currentSize: '3x3', // '3x3', '4x3', '6x3'
+  activeTab: 'Size',
+  setActiveTab: (tab) => set({ activeTab: tab }),
   screenA_Left: false,
   screenA_Right: false,
   screenB: false,
@@ -21,7 +25,7 @@ const useStore = create((set, get) => ({
   isBreakdownVisible: false,
   showDimensions: false,
   toggleDimensions: () => set((state) => ({ showDimensions: !state.showDimensions })),
-  
+
   setActiveSide: (side) => set({ activeSide: side }),
   setSize: (newSize) => set((state) => {
     // If clicking the current size, do absolutely nothing (ignore)
@@ -29,6 +33,9 @@ const useStore = create((set, get) => ({
     // If changing sizes, update size and firmly reset all screens
     return {
       currentSize: newSize,
+      frameColor: '#333333',
+      activeSide: 'A',
+      activeTab: 'Size',
       screenA_Left: false,
       screenA_Right: false,
       screenB: false,
@@ -43,9 +50,9 @@ const useStore = create((set, get) => ({
   toggleScreenC_Left: () => set((state) => ({ screenC_Left: !state.screenC_Left })),
   toggleScreenC_Right: () => set((state) => ({ screenC_Right: !state.screenC_Right })),
   toggleScreenD: () => set((state) => ({ screenD: !state.screenD })),
-  
+
   toggleBreakdown: () => set((state) => ({ isBreakdownVisible: !state.isBreakdownVisible })),
-  
+
   getTotalPrice: () => {
     const state = get();
     let total = BASE_PRICES[state.currentSize] || 1500;
@@ -57,7 +64,7 @@ const useStore = create((set, get) => ({
     if (state.screenD) total += SCREEN_PRICE;
     return total;
   },
-  
+
   getBasePrice: () => BASE_PRICES[get().currentSize],
   getScreenPrice: () => SCREEN_PRICE
 }))

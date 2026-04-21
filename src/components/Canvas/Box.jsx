@@ -7,8 +7,103 @@ import { useSpring, animated } from '@react-spring/three'
 export default function Pergola() {
   const {
     activeSide, screenB, screenD, setActiveSide, currentSize, currentModel,
-    screenA_Left, screenA_Right, screenC_Left, screenC_Right, showDimensions
+    screenA_Left, screenA_Right, screenC_Left, screenC_Right, showDimensions,
+    frameColor
   } = useStore()
+
+  const materialCache = useRef(new Map())
+  const isMounted = useRef(true)
+  const isReady = useRef(false)
+  const pendingColorRef = useRef(null)
+  const pergolaRef = useRef()
+
+  useEffect(() => {
+    isMounted.current = true
+    isReady.current = false
+    return () => {
+      isMounted.current = false
+      isReady.current = false
+      materialCache.current.clear()
+    }
+  }, [])
+
+  useEffect(() => {
+    // Force clear the cache when the core model size changes to prevent stale data
+    materialCache.current.clear()
+    isReady.current = false
+  }, [currentSize, currentModel])
+
+  useEffect(() => {
+    const callback = window.requestIdleCallback || ((cb) => setTimeout(cb, 1))
+    const handle = callback(() => {
+      if (!isMounted.current || !pergolaRef.current) return
+
+      pergolaRef.current.traverse((child) => {
+        if (child.isMesh && child.material) {
+          // Normalize materials into an array so we handle both single and multi-material meshes
+          const materials = Array.isArray(child.material) ? child.material : [child.material]
+          
+          materials.forEach((mat) => {
+            // 1. Ensure this specific material is cached in its original state
+            if (!materialCache.current.has(mat.uuid)) {
+              materialCache.current.set(mat.uuid, {
+                color: mat.color.clone(),
+                map: mat.map,
+                transparent: mat.transparent,
+                opacity: mat.opacity
+              })
+            }
+
+            // 2. Identification logic: Fabric (Screens) vs Metal (Structure)
+            const matName = mat.name.toLowerCase()
+            const meshName = child.name.toLowerCase()
+            
+            // Stricter Detection: To be fabric, it should ideally be MeshPhysicalMaterial AND have fabric keywords.
+            // Metal housings are often MeshStandardMaterial or have "case/housing" in the name.
+            const isMetalKeywords = matName.includes('case') || matName.includes('housing') || matName.includes('beam') || meshName.includes('case') || meshName.includes('housing') || matName.includes('initial')
+            const isFabric = (mat.isMeshPhysicalMaterial === true || matName.includes('fabric')) && !isMetalKeywords
+
+            // 3. Apply the current frameColor logic
+            if (isFabric) {
+              if (frameColor === '#8B5A2B') {
+                const orig = materialCache.current.get(mat.uuid)
+                if (orig) {
+                  mat.color.copy(orig.color)
+                  mat.map = orig.map
+                  mat.transparent = orig.transparent
+                  mat.opacity = orig.opacity
+                }
+              } else {
+                mat.color.set(frameColor)
+                const orig = materialCache.current.get(mat.uuid)
+                if (orig) mat.map = orig.map
+                mat.transparent = true
+              }
+            } else {
+              // METAL/CHASSIS: Solid color application
+              mat.color.set(frameColor)
+              mat.map = null
+              mat.transparent = false
+              
+              // CRITICAL: Disable vertex colors and emissive/other maps that might be baking the "initial" look
+              if (mat.vertexColors !== undefined) mat.vertexColors = false;
+              if (mat.emissive) mat.emissive.set(0x000000);
+              mat.needsUpdate = true
+            }
+
+            if (isMounted.current) mat.needsUpdate = true
+          })
+        }
+      })
+      
+      isReady.current = true
+    })
+
+    return () => {
+      if (window.cancelIdleCallback) window.cancelIdleCallback(handle)
+      else clearTimeout(handle)
+    }
+  }, [frameColor, currentSize, currentModel, screenA_Left, screenA_Right, screenB, screenC_Left, screenC_Right, screenD])
 
   // TODO[Dynamic Models]: Expand this logic to route GLB paths based on currentModel
   // Example: if (currentModel === 'Product 1') rootPath = '/product1'
@@ -37,21 +132,28 @@ export default function Pergola() {
       if (child.isMesh) {
         child.castShadow = true
         child.receiveShadow = true
+        if (child.material) {
+          if (Array.isArray(child.material)) {
+            child.material = child.material.map(m => m.clone())
+          } else {
+            child.material = child.material.clone()
+          }
+        }
       }
     })
     return clone
   }
 
   // Switch Master Frame scientifically safely
-  const frame = useMemo(() => safeClone(frameRaw), [frameRaw])
+  const frame = useMemo(() => safeClone(frameRaw), [frameRaw, currentSize])
 
   // Map respective screens (Double clones for A and C to avoid THREE UUID conflicts in 6x3)
-  const cloneA_Left = useMemo(() => safeClone(longScreenRaw), [longScreenRaw])
-  const cloneA_Right = useMemo(() => safeClone(longScreenRaw), [longScreenRaw])
-  const cloneB = useMemo(() => safeClone(shortScreenRaw), [shortScreenRaw])
-  const cloneC_Left = useMemo(() => safeClone(longScreenRaw), [longScreenRaw])
-  const cloneC_Right = useMemo(() => safeClone(longScreenRaw), [longScreenRaw])
-  const cloneD = useMemo(() => safeClone(shortScreenRaw), [shortScreenRaw])
+  const cloneA_Left = useMemo(() => safeClone(longScreenRaw), [longScreenRaw, currentSize])
+  const cloneA_Right = useMemo(() => safeClone(longScreenRaw), [longScreenRaw, currentSize])
+  const cloneB = useMemo(() => safeClone(shortScreenRaw), [shortScreenRaw, currentSize])
+  const cloneC_Left = useMemo(() => safeClone(longScreenRaw), [longScreenRaw, currentSize])
+  const cloneC_Right = useMemo(() => safeClone(longScreenRaw), [longScreenRaw, currentSize])
+  const cloneD = useMemo(() => safeClone(shortScreenRaw), [shortScreenRaw, currentSize])
 
   // Coordinate Dictionary Mapping
   const configs = {
@@ -111,7 +213,6 @@ export default function Pergola() {
   const offset = 0.15 // Clean outward offset from geometry
 
   // 1. The Measurement Engine
-  const pergolaRef = useRef()
   const [dimensions, setDimensions] = useState({ width: 0, height: 0, depth: 0 })
 
   useEffect(() => {
@@ -119,7 +220,7 @@ export default function Pergola() {
       // Small timeout to allow R3F meshes to fully instantiate in the DOM tree before computing
       setTimeout(() => {
         if (!pergolaRef.current) return
-        
+
         // Force the 3D engine to calculate exact world positions RIGHT NOW
         pergolaRef.current.updateWorldMatrix(true, true);
 
@@ -130,7 +231,7 @@ export default function Pergola() {
           // Only measure visible, physical meshes. 
           if (child.isMesh && child.visible) {
             const name = child.name.toLowerCase();
-            
+
             // Aggressive Filtering: Ignore anything that sticks out
             const isAccessory = name.includes('crank') || name.includes('handle') || name.includes('screen') || name.includes('blind') || name.includes('object001') || name.includes('roof');
             const isHelper = name.includes('line') || name.includes('measurement');
@@ -146,11 +247,11 @@ export default function Pergola() {
               if (!child.geometry.boundingBox) {
                 child.geometry.computeBoundingBox();
               }
-              
+
               const childBox = child.geometry.boundingBox.clone();
               // Apply the exact world position/scale to that geometry
               childBox.applyMatrix4(child.matrixWorld);
-              
+
               // Expand our main box to include this piece
               box.union(childBox);
             }
@@ -172,9 +273,8 @@ export default function Pergola() {
       <Html position={[0, 0, 2.5]} center>
         <div
           onClick={() => setActiveSide('A')}
-          className={`cursor-pointer w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold shadow-md transition-all ${
-            activeSide === 'A' ? 'bg-black text-white scale-125' : 'bg-white text-black border border-gray-200 hover:scale-110'
-          }`}
+          className={`cursor-pointer w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold shadow-md transition-all ${activeSide === 'A' ? 'bg-black text-white scale-125' : 'bg-white text-black border border-gray-200 hover:scale-110'
+            }`}
         >
           A
         </div>
@@ -183,20 +283,18 @@ export default function Pergola() {
       <Html position={[currentSize === '6x3' ? 3.5 : (currentSize === '4x3' ? 2.5 : 2.0), 0, 0]} center>
         <div
           onClick={() => setActiveSide('B')}
-          className={`cursor-pointer w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold shadow-md transition-all ${
-            activeSide === 'B' ? 'bg-black text-white scale-125' : 'bg-white text-black border border-gray-200 hover:scale-110'
-          }`}
+          className={`cursor-pointer w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold shadow-md transition-all ${activeSide === 'B' ? 'bg-black text-white scale-125' : 'bg-white text-black border border-gray-200 hover:scale-110'
+            }`}
         >
-           B
+          B
         </div>
       </Html>
 
       <Html position={[0, 0, -2.5]} center>
         <div
           onClick={() => setActiveSide('C')}
-          className={`cursor-pointer w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold shadow-md transition-all ${
-            activeSide === 'C' ? 'bg-black text-white scale-125' : 'bg-white text-black border border-gray-200 hover:scale-110'
-          }`}
+          className={`cursor-pointer w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold shadow-md transition-all ${activeSide === 'C' ? 'bg-black text-white scale-125' : 'bg-white text-black border border-gray-200 hover:scale-110'
+            }`}
         >
           C
         </div>
@@ -205,9 +303,8 @@ export default function Pergola() {
       <Html position={[currentSize === '6x3' ? -3.5 : (currentSize === '4x3' ? -2.5 : -2.0), 0, 0]} center>
         <div
           onClick={() => setActiveSide('D')}
-          className={`cursor-pointer w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold shadow-md transition-all ${
-            activeSide === 'D' ? 'bg-black text-white scale-125' : 'bg-white text-black border border-gray-200 hover:scale-110'
-          }`}
+          className={`cursor-pointer w-7 h-7 flex items-center justify-center rounded-full text-xs font-bold shadow-md transition-all ${activeSide === 'D' ? 'bg-black text-white scale-125' : 'bg-white text-black border border-gray-200 hover:scale-110'
+            }`}
         >
           D
         </div>
@@ -270,7 +367,7 @@ export default function Pergola() {
       {showDimensions && dimensions.width > 0 && (
         <group>
           {/* 1. The Width Line (Front Floor) */}
-          <Line points={[ [-dimensions.width / 2, 0.05, (dimensions.depth / 2) + offset], [dimensions.width / 2, 0.05, (dimensions.depth / 2) + offset] ]} color="black" lineWidth={1.5} />
+          <Line points={[[-dimensions.width / 2, 0.05, (dimensions.depth / 2) + offset], [dimensions.width / 2, 0.05, (dimensions.depth / 2) + offset]]} color="black" lineWidth={1.5} />
           <Html position={[0, 0.05, (dimensions.depth / 2) + offset]} center zIndexRange={[100, 0]}>
             <div className="bg-gray-900 text-white text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap tracking-wide pointer-events-none shadow-md">
               {dimensions.width.toFixed(2)} m
@@ -278,7 +375,7 @@ export default function Pergola() {
           </Html>
 
           {/* 2. The Depth Line (Left Floor) */}
-          <Line points={[ [(-dimensions.width / 2) - offset, 0.05, -dimensions.depth / 2], [(-dimensions.width / 2) - offset, 0.05, dimensions.depth / 2] ]} color="black" lineWidth={1.5} />
+          <Line points={[[(-dimensions.width / 2) - offset, 0.05, -dimensions.depth / 2], [(-dimensions.width / 2) - offset, 0.05, dimensions.depth / 2]]} color="black" lineWidth={1.5} />
           <Html position={[(-dimensions.width / 2) - offset, 0.05, 0]} center zIndexRange={[100, 0]}>
             <div className="bg-gray-900 text-white text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap tracking-wide pointer-events-none shadow-md">
               {dimensions.depth.toFixed(2)} m
@@ -286,7 +383,7 @@ export default function Pergola() {
           </Html>
 
           {/* 3. The Height Line (Back Right Leg) */}
-          <Line points={[ [(dimensions.width / 2) + offset, 0, -dimensions.depth / 2], [(dimensions.width / 2) + offset, dimensions.height, -dimensions.depth / 2] ]} color="black" lineWidth={1.5} />
+          <Line points={[[(dimensions.width / 2) + offset, 0, -dimensions.depth / 2], [(dimensions.width / 2) + offset, dimensions.height, -dimensions.depth / 2]]} color="black" lineWidth={1.5} />
           <Html position={[(dimensions.width / 2) + offset, dimensions.height / 2, -dimensions.depth / 2]} center zIndexRange={[100, 0]}>
             <div className="bg-gray-900 text-white text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap tracking-wide pointer-events-none shadow-md">
               {dimensions.height.toFixed(2)} m
