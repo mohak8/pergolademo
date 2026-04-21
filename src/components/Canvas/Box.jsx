@@ -42,7 +42,7 @@ export default function Pergola() {
         if (child.isMesh && child.material) {
           // Normalize materials into an array so we handle both single and multi-material meshes
           const materials = Array.isArray(child.material) ? child.material : [child.material]
-          
+
           materials.forEach((mat) => {
             // 1. Ensure this specific material is cached in its original state
             if (!materialCache.current.has(mat.uuid)) {
@@ -57,16 +57,16 @@ export default function Pergola() {
             // 2. Identification logic: Fabric (Screens) vs Metal (Structure)
             const matName = mat.name.toLowerCase()
             const meshName = child.name.toLowerCase()
-            
-            // Stricter Detection: To be fabric, it should ideally be MeshPhysicalMaterial AND have fabric keywords.
-            // Metal housings are often MeshStandardMaterial or have "case/housing" in the name.
-            const isMetalKeywords = matName.includes('case') || matName.includes('housing') || matName.includes('beam') || meshName.includes('case') || meshName.includes('housing') || matName.includes('initial')
-            const isFabric = (mat.isMeshPhysicalMaterial === true || matName.includes('fabric')) && !isMetalKeywords
+
+            // FABRIC: Primary indicator is MeshPhysicalMaterial. Fallback to names if not a housing.
+            const isMetalKeywords = matName.includes('case') || matName.includes('housing') || matName.includes('frame') || meshName.includes('case') || meshName.includes('housing')
+            const isFabric = mat.isMeshPhysicalMaterial === true || ((matName.includes('screen') || matName.includes('fabric') || meshName.includes('fabric')) && !isMetalKeywords)
 
             // 3. Apply the current frameColor logic
             if (isFabric) {
+              const orig = materialCache.current.get(mat.uuid)
               if (frameColor === '#8B5A2B') {
-                const orig = materialCache.current.get(mat.uuid)
+                // WOOD MODE: Complete restoration
                 if (orig) {
                   mat.color.copy(orig.color)
                   mat.map = orig.map
@@ -74,28 +74,31 @@ export default function Pergola() {
                   mat.opacity = orig.opacity
                 }
               } else {
+                // PAINT MODE: Tint color but preserve texture and transparency
                 mat.color.set(frameColor)
-                const orig = materialCache.current.get(mat.uuid)
-                if (orig) mat.map = orig.map
-                mat.transparent = true
+                if (orig) {
+                  mat.map = orig.map
+                  mat.transparent = true
+                  // Crucial: keep the original weave opacity so it stays "somewhat transparent"
+                  mat.opacity = orig.opacity
+                }
               }
             } else {
               // METAL/CHASSIS: Solid color application
               mat.color.set(frameColor)
               mat.map = null
               mat.transparent = false
-              
+
               // CRITICAL: Disable vertex colors and emissive/other maps that might be baking the "initial" look
               if (mat.vertexColors !== undefined) mat.vertexColors = false;
               if (mat.emissive) mat.emissive.set(0x000000);
-              mat.needsUpdate = true
             }
 
             if (isMounted.current) mat.needsUpdate = true
           })
         }
       })
-      
+
       isReady.current = true
     })
 
@@ -105,10 +108,8 @@ export default function Pergola() {
     }
   }, [frameColor, currentSize, currentModel, screenA_Left, screenA_Right, screenB, screenC_Left, screenC_Right, screenD])
 
-  // TODO[Dynamic Models]: Expand this logic to route GLB paths based on currentModel
-  // Example: if (currentModel === 'Product 1') rootPath = '/product1'
-  // Currently defaulting to '/pergola/' for all models until finalized meshes are provided.
-  const rootPath = '/pergola'
+  // Use relative paths for assets to work across any FTP folder structure
+  const rootPath = 'pergola'
 
   // Only dispatch the network load for the specific size requested!
   const { scene: frameRaw } = useGLTF(`${rootPath}/${currentSize}/${currentSize}.glb`)
@@ -396,8 +397,8 @@ export default function Pergola() {
   )
 }
 
-useGLTF.preload('/pergola/3x3/3x3.glb')
-useGLTF.preload('/pergola/3x3/3x3_Screen.glb')
-useGLTF.preload('/pergola/4x3/4x3.glb')
-useGLTF.preload('/pergola/4x3/4x3_Screen.glb')
-useGLTF.preload('/pergola/6x3/6x3.glb')
+useGLTF.preload('pergola/3x3/3x3.glb')
+useGLTF.preload('pergola/3x3/3x3_Screen.glb')
+useGLTF.preload('pergola/4x3/4x3.glb')
+useGLTF.preload('pergola/4x3/4x3_Screen.glb')
+useGLTF.preload('pergola/6x3/6x3.glb')

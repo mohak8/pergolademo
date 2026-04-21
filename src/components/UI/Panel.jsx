@@ -248,7 +248,7 @@ function ProductCard({ title, price, isOn, onToggle }) {
           : 'border-gray-200 hover:border-gray-400'}`}
       >
         <div className="w-full bg-gray-50 flex items-center justify-center overflow-hidden">
-          <img src="/pergola/screen.png" alt={title} className="w-full h-full object-cover opacity-90" />
+          <img src={`${import.meta.env.BASE_URL}pergola/screen.png`} alt={title} className="w-full h-full object-cover opacity-90" />
         </div>
         <div className="p-3 flex flex-col flex-1 justify-between gap-0.5 bg-white border-t border-gray-100">
           <span className="text-[13px] font-semibold text-gray-900">{title}</span>
