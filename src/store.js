@@ -9,29 +9,73 @@ const BASE_PRICES = {
 
 const useStore = create((set, get) => ({
   currentModel: 'Pergola',
-  setModel: (model) => set({ currentModel: model }),
   frameColor: '#333333',
-  setFrameColor: (hex) => set({ frameColor: hex }),
-  activeSide: 'A', // 'A', 'B', 'C', 'D'
-  currentSize: '3x3', // '3x3', '4x3', '6x3'
-  activeTab: 'Size',
-  setActiveTab: (tab) => set({ activeTab: tab }),
+  activeSide: 'A',
+  currentSize: '3x3',
+  activeTab: 'Model',
+  
   screenA_Left: false,
   screenA_Right: false,
   screenB: false,
   screenC_Left: false,
   screenC_Right: false,
   screenD: false,
+  
   isBreakdownVisible: false,
   showDimensions: false,
-  toggleDimensions: () => set((state) => ({ showDimensions: !state.showDimensions })),
+  
+  history: [],
 
-  setActiveSide: (side) => set({ activeSide: side }),
-  setSize: (newSize) => set((state) => {
-    // If clicking the current size, do absolutely nothing (ignore)
-    if (state.currentSize === newSize) return {}
-    // If changing sizes, update size and firmly reset all screens
-    return {
+  // Helper to save current state to history before a change
+  saveHistory: () => {
+    const state = get()
+    const snapshot = {
+      frameColor: state.frameColor,
+      activeSide: state.activeSide,
+      activeTab: state.activeTab,
+      screenA_Left: state.screenA_Left,
+      screenA_Right: state.screenA_Right,
+      screenB: state.screenB,
+      screenC_Left: state.screenC_Left,
+      screenC_Right: state.screenC_Right,
+      screenD: state.screenD,
+    }
+    set((state) => ({ history: [...state.history, snapshot] }))
+  },
+
+  undo: () => {
+    const { history } = get()
+    if (history.length === 0) return
+    
+    const lastSnapshot = history[history.length - 1]
+    const newHistory = history.slice(0, -1)
+    
+    set({
+      ...lastSnapshot,
+      history: newHistory
+    })
+  },
+
+  setModel: (model) => {
+    if (get().currentModel === model) return
+    set({
+      currentModel: model,
+      frameColor: '#333333',
+      activeSide: 'A',
+      activeTab: 'Model',
+      screenA_Left: false,
+      screenA_Right: false,
+      screenB: false,
+      screenC_Left: false,
+      screenC_Right: false,
+      screenD: false,
+      history: [] // Reset history on model change
+    })
+  },
+
+  setSize: (newSize) => {
+    if (get().currentSize === newSize) return
+    set({
       currentSize: newSize,
       frameColor: '#333333',
       activeSide: 'A',
@@ -42,15 +86,36 @@ const useStore = create((set, get) => ({
       screenC_Left: false,
       screenC_Right: false,
       screenD: false,
-    }
-  }),
-  toggleScreenA_Left: () => set((state) => ({ screenA_Left: !state.screenA_Left })),
-  toggleScreenA_Right: () => set((state) => ({ screenA_Right: !state.screenA_Right })),
-  toggleScreenB: () => set((state) => ({ screenB: !state.screenB })),
-  toggleScreenC_Left: () => set((state) => ({ screenC_Left: !state.screenC_Left })),
-  toggleScreenC_Right: () => set((state) => ({ screenC_Right: !state.screenC_Right })),
-  toggleScreenD: () => set((state) => ({ screenD: !state.screenD })),
+      history: [] // Reset history on size change
+    })
+  },
 
+  setFrameColor: (hex) => {
+    if (get().frameColor === hex) return
+    get().saveHistory()
+    set({ frameColor: hex })
+  },
+
+  setActiveTab: (tab) => {
+    if (get().activeTab === tab) return
+    get().saveHistory()
+    set({ activeTab: tab })
+  },
+
+  setActiveSide: (side) => {
+    if (get().activeSide === side) return
+    get().saveHistory()
+    set({ activeSide: side })
+  },
+
+  toggleScreenA_Left: () => { get().saveHistory(); set((state) => ({ screenA_Left: !state.screenA_Left })) },
+  toggleScreenA_Right: () => { get().saveHistory(); set((state) => ({ screenA_Right: !state.screenA_Right })) },
+  toggleScreenB: () => { get().saveHistory(); set((state) => ({ screenB: !state.screenB })) },
+  toggleScreenC_Left: () => { get().saveHistory(); set((state) => ({ screenC_Left: !state.screenC_Left })) },
+  toggleScreenC_Right: () => { get().saveHistory(); set((state) => ({ screenC_Right: !state.screenC_Right })) },
+  toggleScreenD: () => { get().saveHistory(); set((state) => ({ screenD: !state.screenD })) },
+
+  toggleDimensions: () => set((state) => ({ showDimensions: !state.showDimensions })),
   toggleBreakdown: () => set((state) => ({ isBreakdownVisible: !state.isBreakdownVisible })),
 
   getTotalPrice: () => {

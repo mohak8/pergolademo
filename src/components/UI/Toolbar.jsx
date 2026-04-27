@@ -2,8 +2,14 @@ import React, { useState } from 'react'
 import useStore from '../../store'
 
 function Toolbar() {
-  const { showDimensions, toggleDimensions } = useStore()
+  const { showDimensions, toggleDimensions, undo, history } = useStore()
   const [menuOpen, setMenuOpen] = useState(false)
+
+  const canGoBack = history.length > 0
+
+  const handleBack = () => {
+    undo()
+  }
 
   const toolButtons = [
     {
@@ -13,7 +19,9 @@ function Toolbar() {
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
         </svg>
       ),
-      action: () => console.log('Go back')
+      action: handleBack,
+      disabled: !canGoBack,
+      active: false // Back button is a trigger, not a toggle
     },
     {
       id: 'dimensions',
@@ -52,11 +60,14 @@ function Toolbar() {
         {toolButtons.map(btn => (
           <button
             key={btn.id}
-            onClick={btn.action}
+            onClick={btn.disabled ? null : btn.action}
+            disabled={btn.disabled}
             className={`w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-md shadow-lg transition-all ${
-              btn.active 
-                ? 'bg-gray-900 text-white shadow-gray-900/40' 
-                : 'bg-white/90 text-gray-800 hover:bg-white hover:scale-105 shadow-black/10'
+              btn.disabled 
+                ? 'opacity-30 cursor-not-allowed' 
+                : btn.active 
+                  ? 'bg-gray-900 text-white shadow-gray-900/40' 
+                  : 'bg-white/90 text-gray-800 hover:bg-white hover:scale-105 shadow-black/10'
             }`}
           >
             {btn.icon}

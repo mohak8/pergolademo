@@ -6,10 +6,10 @@ export default function Panel() {
     currentModel, setModel, activeSide, screenA_Left, screenA_Right, screenB, screenC_Left, screenC_Right, screenD, currentSize,
     setActiveSide, toggleScreenA_Left, toggleScreenA_Right, toggleScreenB, toggleScreenC_Left, toggleScreenC_Right, toggleScreenD, setSize,
     isBreakdownVisible, toggleBreakdown, getTotalPrice, getBasePrice, getScreenPrice,
-    frameColor, setFrameColor, activeTab, setActiveTab
+    frameColor, setFrameColor, activeTab, setActiveTab, undo, history
   } = useStore()
 
-  const mainTabs = ['Model', 'Size', 'Color', 'Sides']
+  const canGoBack = history.length > 0
 
   const sideTabs = [
     { id: 'A', label: 'Side A' },
@@ -19,6 +19,15 @@ export default function Panel() {
   ]
 
   const screenPriceDisplay = `+ £${getScreenPrice()}`
+
+  const handleBack = () => {
+    undo()
+  }
+
+  const handleSideSelect = (sideId) => {
+    setActiveSide(sideId)
+    setActiveTab('Blinds')
+  }
 
   return (
     <div className="w-full md:w-[400px] flex-shrink-0 bg-white md:border-r border-gray-200 shadow-2xl md:shadow-none z-20 flex flex-col font-sans h-[40vh] md:h-screen relative overflow-hidden order-last md:order-first">
@@ -30,71 +39,59 @@ export default function Panel() {
           <p className="text-xs md:text-sm text-gray-500 mt-1">Configure your premium space.</p>
         </div>
 
-        {/* Main Navigation Tabs - MOBILE ONLY */}
-        <div className="flex md:hidden bg-gray-100 p-1 rounded-xl mb-4">
-          {mainTabs.map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`flex-1 py-2 text-[13px] font-bold rounded-lg transition-all ${activeTab === tab
-                ? 'bg-white text-gray-900 shadow-sm'
-                : 'text-gray-500 hover:text-gray-800'
-                }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
+        {/* Small Back Button inside the Panel (as seen in screenshot) */}
+        {canGoBack && (
+          <button
+            onClick={handleBack}
+            className="flex items-center gap-1.5 mb-5 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors"
+          >
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            BACK
+          </button>
+        )}
 
         <div className="flex flex-col md:space-y-8">
-          {/* VIEW: Select Model */}
+          {/* VIEW: Model Selection */}
           <section className={`${activeTab === 'Model' ? 'block animate-in fade-in slide-in-from-right-4 duration-300' : 'hidden'} md:block md:animate-none`}>
             <h2 className="text-sm text-gray-900 font-semibold mb-3">Model Type</h2>
             <div className="flex gap-3">
-              {['Pergola', 'Product 1', 'Product 2'].map((mod) => {
-                const isActive = currentModel === mod
-                return (
-                  <button
-                    key={mod}
-                    onClick={() => setModel(mod)}
-                    className={`py-3.5 px-4 text-sm font-semibold rounded-xl border transition-all text-left flex items-center justify-between ${isActive
-                      ? 'bg-[#F8EFEA] border-gray-900 text-gray-900 shadow-sm'
-                      : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400'
-                      }`}
-                  >
-                    <span>{mod}</span>
-                    {isActive}
-                  </button>
-                )
-              })}
+              {['Pergola', 'Product 1', 'Product 2'].map((mod) => (
+                <button
+                  key={mod}
+                  onClick={() => setModel(mod)}
+                  className={`py-3.5 px-4 text-sm font-semibold rounded-xl border transition-all text-left flex items-center justify-between ${currentModel === mod
+                    ? 'bg-[#F8EFEA] border-gray-900 text-gray-900 shadow-sm'
+                    : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400'
+                    }`}
+                >
+                  <span>{mod}</span>
+                </button>
+              ))}
             </div>
           </section>
 
-          {/* VIEW: Select Size */}
+          {/* VIEW: Size Selection */}
           <section className={`${activeTab === 'Size' ? 'block animate-in fade-in slide-in-from-right-4 duration-300' : 'hidden'} md:block md:animate-none`}>
             <h2 className="text-sm text-gray-900 font-semibold mb-3">Dimensions</h2>
             <div className="flex gap-3">
-              {['3x3', '4x3', '6x3'].map((s) => {
-                const label = s.split('x').join(' x ')
-                const isActive = currentSize === s
-                return (
-                  <button
-                    key={s}
-                    onClick={() => setSize(s)}
-                    className={`py-3.5 px-4 text-sm font-semibold rounded-xl border transition-all text-left flex items-center justify-between ${isActive
-                      ? 'bg-[#F8EFEA] border-gray-900 text-gray-900 shadow-sm'
-                      : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400'
-                      }`}
-                  >
-                    <span>{label}</span>
-                    {isActive}
-                  </button>
-                )
-              })}
+              {['3x3', '4x3', '6x3'].map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setSize(s)}
+                  className={`py-3.5 px-4 text-sm font-semibold rounded-xl border transition-all text-left flex items-center justify-between ${currentSize === s
+                    ? 'bg-[#F8EFEA] border-gray-900 text-gray-900 shadow-sm'
+                    : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400'
+                    }`}
+                >
+                  <span>{s.split('x').join(' x ')}</span>
+                </button>
+              ))}
             </div>
           </section>
 
-          {/* VIEW: Select Color */}
+          {/* VIEW: Color Selection */}
           <section className={`${activeTab === 'Color' ? 'block animate-in fade-in slide-in-from-right-4 duration-300' : 'hidden'} md:block md:animate-none`}>
             <h2 className="text-sm text-gray-900 font-semibold mb-3">Frame Finish</h2>
             <div className="flex gap-3">
@@ -102,34 +99,31 @@ export default function Panel() {
                 { hex: '#333333', name: 'Charcoal' },
                 { hex: '#FFFFFF', name: 'White' },
                 { hex: '#8B5A2B', name: 'Wood Finish' }
-              ].map((c) => {
-                const isActive = frameColor === c.hex
-                return (
-                  <button
-                    key={c.hex}
-                    onClick={() => setFrameColor(c.hex)}
-                    className={`py-3 px-3 flex-1 flex flex-col items-center gap-2 text-xs font-semibold rounded-xl border transition-all ${isActive
-                      ? 'bg-[#F8EFEA] border-gray-900 text-gray-900 shadow-sm'
-                      : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
-                      }`}
-                  >
-                    <div className="w-8 h-8 rounded-full shadow-sm border border-gray-300" style={{ backgroundColor: c.hex }}></div>
-                    <span>{c.name}</span>
-                  </button>
-                )
-              })}
+              ].map((c) => (
+                <button
+                  key={c.hex}
+                  onClick={() => setFrameColor(c.hex)}
+                  className={`py-3 px-3 flex-1 flex flex-col items-center gap-2 text-xs font-semibold rounded-xl border transition-all ${frameColor === c.hex
+                    ? 'bg-[#F8EFEA] border-gray-900 text-gray-900 shadow-sm'
+                    : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
+                    }`}
+                >
+                  <div className="w-8 h-8 rounded-full shadow-sm border border-gray-300" style={{ backgroundColor: c.hex }}></div>
+                  <span>{c.name}</span>
+                </button>
+              ))}
             </div>
           </section>
 
-          {/* VIEW: Sides & Screens */}
+          {/* VIEW: Sides Selection */}
           <section className={`${activeTab === 'Sides' ? 'block animate-in fade-in slide-in-from-right-4 duration-300' : 'hidden'} md:block md:animate-none`}>
             <h2 className="text-sm text-gray-900 font-semibold mb-3">Orient Side</h2>
             <div className="flex gap-2 mb-6">
               {sideTabs.map((tab) => (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveSide(tab.id)}
-                  className={`flex-1 py-1.5 text-sm font-semibold rounded-xl border transition-all ${activeSide === tab.id
+                  onClick={() => handleSideSelect(tab.id)}
+                  className={`flex-1 py-1.5 text-sm font-semibold rounded-xl border transition-all ${activeSide === tab.id && activeTab === 'Blinds'
                     ? 'bg-orange-50 border-gray-900 text-gray-900 shadow-sm'
                     : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
                     }`}
@@ -138,44 +132,50 @@ export default function Panel() {
                 </button>
               ))}
             </div>
-
-            {/* Accessory Cards */}
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm text-gray-900 font-semibold">Side {activeSide} Blinds</h2>
-              <span className="text-[11px] font-medium text-gray-500 uppercase tracking-widest bg-gray-100 px-2.5 py-1 rounded-full">+ £300 each</span>
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              {activeSide === 'A' && currentSize === '6x3' && (
-                <>
-                  <ProductCard title="Left Screen" price={screenPriceDisplay} isOn={screenA_Left} onToggle={toggleScreenA_Left} />
-                  <ProductCard title="Right Screen" price={screenPriceDisplay} isOn={screenA_Right} onToggle={toggleScreenA_Right} />
-                </>
-              )}
-              {activeSide === 'A' && currentSize !== '6x3' && (
-                <ProductCard title="Front Screen" price={screenPriceDisplay} isOn={screenA_Left} onToggle={toggleScreenA_Left} />
-              )}
-
-              {activeSide === 'B' && (
-                <ProductCard title="Side Screen" price={screenPriceDisplay} isOn={screenB} onToggle={toggleScreenB} />
-              )}
-
-              {activeSide === 'C' && currentSize === '6x3' && (
-                <>
-                  <ProductCard title="Left Screen" price={screenPriceDisplay} isOn={screenC_Left} onToggle={toggleScreenC_Left} />
-                  <ProductCard title="Right Screen" price={screenPriceDisplay} isOn={screenC_Right} onToggle={toggleScreenC_Right} />
-                </>
-              )}
-              {activeSide === 'C' && currentSize !== '6x3' && (
-                <ProductCard title="Back Screen" price={screenPriceDisplay} isOn={screenC_Left} onToggle={toggleScreenC_Left} />
-              )}
-
-              {activeSide === 'D' && (
-                <ProductCard title="Side Screen" price={screenPriceDisplay} isOn={screenD} onToggle={toggleScreenD} />
-              )}
-            </div>
+            {activeTab === 'Sides' && <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold text-center">Pick a side to configure</p>}
           </section>
+
+          {/* VIEW: Blinds Selection (Dynamic overlay/content) */}
+          {activeTab === 'Blinds' && (
+            <section className="animate-in fade-in slide-in-from-bottom-2 duration-300">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm text-gray-900 font-semibold">Side {activeSide} Blinds</h2>
+                <span className="text-[11px] font-medium text-gray-500 uppercase tracking-widest bg-gray-100 px-2.5 py-1 rounded-full">{screenPriceDisplay}</span>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                {activeSide === 'A' && currentSize === '6x3' && (
+                  <>
+                    <ProductCard title="Left Screen" price={screenPriceDisplay} isOn={screenA_Left} onToggle={toggleScreenA_Left} />
+                    <ProductCard title="Right Screen" price={screenPriceDisplay} isOn={screenA_Right} onToggle={toggleScreenA_Right} />
+                  </>
+                )}
+                {activeSide === 'A' && currentSize !== '6x3' && (
+                  <ProductCard title="Front Screen" price={screenPriceDisplay} isOn={screenA_Left} onToggle={toggleScreenA_Left} />
+                )}
+
+                {activeSide === 'B' && (
+                  <ProductCard title="Side Screen" price={screenPriceDisplay} isOn={screenB} onToggle={toggleScreenB} />
+                )}
+
+                {activeSide === 'C' && currentSize === '6x3' && (
+                  <>
+                    <ProductCard title="Left Screen" price={screenPriceDisplay} isOn={screenC_Left} onToggle={toggleScreenC_Left} />
+                    <ProductCard title="Right Screen" price={screenPriceDisplay} isOn={screenC_Right} onToggle={toggleScreenC_Right} />
+                  </>
+                )}
+                {activeSide === 'C' && currentSize !== '6x3' && (
+                  <ProductCard title="Back Screen" price={screenPriceDisplay} isOn={screenC_Left} onToggle={toggleScreenC_Left} />
+                )}
+
+                {activeSide === 'D' && (
+                  <ProductCard title="Side Screen" price={screenPriceDisplay} isOn={screenD} onToggle={toggleScreenD} />
+                )}
+              </div>
+            </section>
+          )}
         </div>
       </div>
+
 
       {/* Sticky Cart & Pricing Footer */}
       <div className="p-4 border-t border-gray-200 bg-white/95 backdrop-blur-lg md:absolute md:bottom-0 md:left-0 md:w-full z-30">
