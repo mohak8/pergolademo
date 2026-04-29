@@ -51,7 +51,7 @@ export default function Panel() {
           <section className={`${activeTab === 'Model' ? 'block animate-in fade-in slide-in-from-right-4 duration-300' : 'hidden'} md:block md:animate-none`}>
             <h2 className="text-sm text-gray-900 font-semibold mb-3">Model Type</h2>
             <div className="flex gap-3">
-              {['Pergola', 'Product 1', 'Product 2'].map((mod) => {
+              {[currentModel].map((mod) => {
                 const isActive = currentModel === mod
                 return (
                   <button
