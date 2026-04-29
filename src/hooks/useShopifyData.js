@@ -17,11 +17,8 @@ export const useShopifyData = () => {
     const handleMessage = (event) => {
       // Process only messages of type SHOPIFY_PRODUCT_DATA
       if (event.data?.type === 'SHOPIFY_PRODUCT_DATA') {
-        console.log("DEBUG: --- Shopify Incoming Payload ---", event.data)
-        
         // Initialize store data if function is available
         if (typeof initializeFromPayload === 'function') {
-           console.log("DEBUG: Calling initializeFromPayload with Shopify Data")
            initializeFromPayload(event.data)
         }
         
