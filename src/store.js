@@ -74,6 +74,11 @@ const useStore = create((set, get) => ({
   toggleScreenC_Left: () => set((state) => ({ screenC_Left: !state.screenC_Left })),
   toggleScreenC_Right: () => set((state) => ({ screenC_Right: !state.screenC_Right })),
   toggleScreenD: () => set((state) => ({ screenD: !state.screenD })),
+  
+  setFrameColor: (hex, name) => set({ 
+    frameColor: hex, 
+    frameColorName: name 
+  }),
 
   /**
    * Processes incoming data from Shopify and normalizes strings for GLB compatibility.
