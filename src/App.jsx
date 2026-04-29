@@ -8,10 +8,9 @@ import useStore from './store'
 
 function App() {
   const { isLoaded } = useShopifyData()
-  const initializeFromPayload = useStore(state => state.initializeFromPayload)
   const [showFallbackNotice, setShowFallbackNotice] = useState(false)
 
-  // --- 1. LOCAL MOCK Logic ---
+  // --- 1. LOCAL MOCK Logic (Only for localhost dev) ---
   useEffect(() => {
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
       const mockTimer = setTimeout(() => {
@@ -22,41 +21,60 @@ function App() {
             product: {
               title: 'Mock Pergola Plus',
               handle: 'mock-pergola',
-              options: [{ name: 'Size' }, { name: 'Color' }],
+              options: ['Size', 'Color'],
               variants: [
-                { id: 1, title: '3x3 / Charcoal', options: ['3x3', 'Charcoal'], price: 150000 },
-                { id: 2, title: '4x3 / Charcoal', options: ['4x3', 'Charcoal'], price: 180000 }
+                { id: 1, title: '3x3m / Charcoal', options: ['3x3m', 'Charcoal'], price: 150000 },
+                { id: 2, title: '4x3m / Charcoal', options: ['4x3m', 'Charcoal'], price: 180000 },
+                { id: 3, title: '6x3m / Charcoal', options: ['6x3m', 'Charcoal'], price: 210000 }
               ]
+            },
+            sizesConfig: {
+              '3x3m': { size: '3x3m', slideA: [], slideB: [], slideC: [], slideD: [] },
+              '4x3m': { size: '4x3m', slideA: [], slideB: [], slideC: [], slideD: [] },
+              '6x3m': { size: '6x3m', slideA: [], slideB: [], slideC: [], slideD: [] }
             },
             variantMetafields: {},
             addonProducts: []
           }, '*');
         }
-      }, 2000);
+      }, 1500);
       return () => clearTimeout(mockTimer);
     }
   }, [isLoaded]);
 
-  // --- 2. TIMED FALLBACK Logic (Safety for Live Shopify) ---
+  // --- 2. TIMED FALLBACK for Live Shopify (if READY signal is missed) ---
   useEffect(() => {
     if (!isLoaded) {
       const fallbackTimer = setTimeout(() => {
         if (!isLoaded) {
-          console.warn("App: Shopify data timeout. Using fallback...");
-          initializeFromPayload(null); // Triggers store fallback
+          console.warn("App: Shopify data timeout - check Liquid script.");
           setShowFallbackNotice(true);
         }
-      }, 6000); // 6 second safety window
+      }, 10000); // 10 second safety window
       return () => clearTimeout(fallbackTimer);
     }
-  }, [isLoaded, initializeFromPayload]);
+  }, [isLoaded]);
 
-  if (!isLoaded) {
+  // Loading screen
+  if (!isLoaded && !showFallbackNotice) {
     return (
       <div className="flex items-center justify-center h-screen bg-white">
         <div className="text-center">
           <p className="text-xl font-bold text-slate-800 animate-pulse">LOADING CONFIGURATOR...</p>
           <p className="text-sm text-slate-500 mt-2">Waiting for Shopify product data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Error screen if Shopify data never came
+  if (!isLoaded && showFallbackNotice) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-white">
+        <div className="text-center px-6">
+          <p className="text-xl font-bold text-red-600">⚠️ Connection Error</p>
+          <p className="text-sm text-slate-500 mt-2">Could not receive product data from Shopify. Please refresh.</p>
+          <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-gray-900 text-white rounded-lg text-sm">Retry</button>
         </div>
       </div>
     );
@@ -71,11 +89,6 @@ function App() {
         dataInterpolation={(p) => `LOADING ASSETS... ${p.toFixed(0)}%`}
         dataStyles={{ fontSize: '13px', fontWeight: 'bold', letterSpacing: '0.1em', color: '#0f172a', textTransform: 'uppercase' }}
       />
-      {showFallbackNotice && (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[100] bg-amber-50 border border-amber-200 text-amber-800 px-4 py-2 rounded-full text-xs shadow-lg animate-bounce">
-          ⚠️ Connection delayed. Using default configuration.
-        </div>
-      )}
       <div className="relative h-screen w-full flex flex-col md:flex-row font-sans bg-gray-100 overflow-hidden text-slate-800">
         <Panel />
         <div className="h-[60vh] md:h-screen w-full flex-1 relative z-0">
