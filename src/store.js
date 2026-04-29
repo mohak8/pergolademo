@@ -105,11 +105,11 @@ const useStore = create((set, get) => ({
       product.variants.forEach(variant => {
         const rawSize = variant.options[sizeIdx] || 'Default';
         
-        // NORMALIZATION: Strip trailing 'm' (e.g., "3x3m" -> "3x3") to match static GLB file paths
-        const sizeVal = rawSize.replace(/m$/i, '');
+        // AGGRESSIVE NORMALIZATION: remove 'm', spaces, and lowercase
+        const sizeVal = rawSize.toLowerCase().replace(/m$/i, '').replace(/\s+/g, '').trim();
         const colorVal = variant.options[colorIdx] || 'Default';
 
-        const key = `${sizeVal.replace(/\s/g, '')}_${colorVal}`;
+        const key = `${sizeVal}_${colorVal}`;
         newVariantPrices[key] = variant.price > 1000 ? variant.price / 100 : variant.price;
 
         uniqueSizes.add(sizeVal);
@@ -131,19 +131,22 @@ const useStore = create((set, get) => ({
       const firstSize = availableSizes[0] || '3x3';
       const firstColor = availableColors[0] || { name: 'Charcoal', hex: '#333333' };
 
-      // Normalize keys in the grouping config (e.g., sizesConfig["3x3m"] -> sizesConfig["3x3"])
+      // Deep Normalization for sizesConfig keys
       const normalizedSizesConfig = {};
       if (sizesConfig) {
         Object.keys(sizesConfig).forEach(key => {
           const rawData = sizesConfig[key];
-          const cleanKey = key.replace(/m$/i, '').trim();
+          // Aggressive normalization: remove 'm', remove spaces, lowercase
+          const cleanKey = key.toLowerCase().replace(/m$/i, '').replace(/\s+/g, '').trim();
           normalizedSizesConfig[cleanKey] = rawData;
-          // Also keep the original key just in case
+          
+          // Also keep original key as fallback
           normalizedSizesConfig[key] = rawData;
         });
       }
 
       console.log("DEBUG: Final Normalized Config Keys:", Object.keys(normalizedSizesConfig));
+      console.log("DEBUG: Current Set currentSize:", firstSize);
 
       set({
         variantPrices: newVariantPrices,
