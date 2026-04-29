@@ -170,6 +170,7 @@ export default function Panel() {
                     price={`+ £${priceVal}`} 
                     isOn={isOn} 
                     onToggle={onToggle} 
+                    image={product.featured_image}
                   />
                 );
               })}
