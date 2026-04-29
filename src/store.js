@@ -123,6 +123,10 @@ const useStore = create((set, get) => ({
 
       const availableSizes = Array.from(uniqueSizes);
       const availableColors = Array.from(uniqueColorsMap.values());
+      
+      console.log("DEBUG: Normalized Sizes:", availableSizes);
+      console.log("DEBUG: Dynamic Prices Map:", newVariantPrices);
+
       const firstSize = availableSizes[0] || '3x3';
       const firstColor = availableColors[0] || { name: 'Charcoal', hex: '#333333' };
 
