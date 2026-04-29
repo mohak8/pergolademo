@@ -13,8 +13,18 @@ console.warn = (...args) => {
   originalWarn(...args)
 }
 
+import useStore from './store.js'
+
+// Extract handle from URL for Shopify context (/products/handle)
+const pathParts = window.location.pathname.split('/');
+const productHandle = pathParts.includes('products') ? pathParts[pathParts.indexOf('products') + 1] : 'pergostet-plus-1';
+
+// Initialize store with Shopify data immediately
+useStore.getState().initializeFromShopify(productHandle);
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />
   </StrictMode>,
 )
+
