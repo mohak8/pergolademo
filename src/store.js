@@ -186,7 +186,8 @@ const useStore = create((set, get) => ({
       let sizeIdx = -1;
       let colorIdx = -1;
       targetProduct.options.forEach((opt, i) => {
-        const name = opt.name.toLowerCase();
+        const optName = typeof opt === 'string' ? opt : (opt.name || '');
+        const name = optName.toLowerCase();
         if (name.includes('size') || name.includes('dimen')) sizeIdx = i;
         if (name.includes('color') || name.includes('finish') || name.includes('frame')) colorIdx = i;
       });
