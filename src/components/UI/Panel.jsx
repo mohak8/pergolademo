@@ -74,7 +74,7 @@ export default function Panel() {
           <section className={`${activeTab === 'Size' ? 'block animate-in fade-in slide-in-from-right-4 duration-300' : 'hidden'} md:block md:animate-none`}>
             <h2 className="text-sm text-gray-900 font-semibold mb-3">Dimensions</h2>
             <div className="flex gap-3">
-              {['3x3', '4x3', '6x3'].map((s) => {
+              {availableSizes.map((s) => {
                 const label = s.split('x').join(' x ')
                 const isActive = currentSize === s
                 return (
@@ -98,16 +98,12 @@ export default function Panel() {
           <section className={`${activeTab === 'Color' ? 'block animate-in fade-in slide-in-from-right-4 duration-300' : 'hidden'} md:block md:animate-none`}>
             <h2 className="text-sm text-gray-900 font-semibold mb-3">Frame Finish</h2>
             <div className="flex gap-3">
-              {[
-                { hex: '#333333', name: 'Charcoal' },
-                { hex: '#FFFFFF', name: 'White' },
-                { hex: '#8B5A2B', name: 'Wood Finish' }
-              ].map((c) => {
+              {availableColors.map((c) => {
                 const isActive = frameColor === c.hex
                 return (
                   <button
                     key={c.hex}
-                    onClick={() => setFrameColor(c.hex)}
+                    onClick={() => setFrameColor(c.hex, c.name)}
                     className={`py-3 px-3 flex-1 flex flex-col items-center gap-2 text-xs font-semibold rounded-xl border transition-all ${isActive
                       ? 'bg-[#F8EFEA] border-gray-900 text-gray-900 shadow-sm'
                       : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
