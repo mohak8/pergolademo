@@ -126,6 +126,7 @@ const useStore = create((set, get) => ({
       
       console.log("DEBUG: Normalized Sizes:", availableSizes);
       console.log("DEBUG: Dynamic Prices Map:", newVariantPrices);
+      console.log("DEBUG: Blinds Config (A/B/C/D):", normalizedSizesConfig);
 
       const firstSize = availableSizes[0] || '3x3';
       const firstColor = availableColors[0] || { name: 'Charcoal', hex: '#333333' };
