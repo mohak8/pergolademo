@@ -141,10 +141,19 @@ export default function Panel() {
               <span className="text-[11px] font-medium text-gray-500 uppercase tracking-widest bg-gray-100 px-2.5 py-1 rounded-full">+ £300 each</span>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              {sizesConfig[currentSize]?.[`slide${activeSide}`]?.map((product, index) => {
-                let isOn = false;
-                let onToggle = () => {};
+              {(() => {
+                const currentData = sizesConfig[currentSize] || {};
+                const currentSlide = currentData[`slide${activeSide}`] || [];
                 
+                if (currentSlide.length === 0) {
+                  console.log(`DEBUG: No data found for Size: ${currentSize}, Slide: slide${activeSide}`);
+                  console.log("DEBUG: Available Keys in sizesConfig:", Object.keys(sizesConfig));
+                }
+                
+                return currentSlide.map((product, index) => {
+                  let isOn = false;
+                let onToggle = () => { };
+
                 // Determine which toggle to use based on side and index
                 if (activeSide === 'A') {
                   isOn = index === 0 ? screenA_Left : screenA_Right;
@@ -164,12 +173,12 @@ export default function Panel() {
                 const priceVal = product.price > 1000 ? (product.price / 100).toFixed(0) : product.price;
 
                 return (
-                  <ProductCard 
+                  <ProductCard
                     key={product.id || index}
-                    title={product.title} 
-                    price={`+ £${priceVal}`} 
-                    isOn={isOn} 
-                    onToggle={onToggle} 
+                    title={product.title}
+                    price={`+ £${priceVal}`}
+                    isOn={isOn}
+                    onToggle={onToggle}
                     image={product.featured_image}
                   />
                 );
