@@ -2,7 +2,7 @@ import React, { useMemo, useEffect, useState, useRef } from 'react'
 import { useGLTF, Html, Line } from '@react-three/drei'
 import * as THREE from 'three'
 import useStore from '../../store'
-import { useSpring } from '@react-spring/three'
+import { useSpring, animated } from '@react-spring/three'
 
 export default function Pergola() {
   const {
@@ -14,6 +14,7 @@ export default function Pergola() {
   const materialCache = useRef(new Map())
   const isMounted = useRef(true)
   const isReady = useRef(false)
+  const pendingColorRef = useRef(null)
   const pergolaRef = useRef()
 
   useEffect(() => {
