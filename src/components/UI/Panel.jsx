@@ -6,7 +6,7 @@ export default function Panel() {
     currentModel, setModel, activeSide, screenA_Left, screenA_Right, screenB, screenC_Left, screenC_Right, screenD, currentSize,
     setActiveSide, toggleScreenA_Left, toggleScreenA_Right, toggleScreenB, toggleScreenC_Left, toggleScreenC_Right, toggleScreenD, setSize,
     isBreakdownVisible, toggleBreakdown, getTotalPrice, getBasePrice, getScreenPrice,
-    frameColor, setFrameColor, activeTab, setActiveTab
+    frameColor, setFrameColor, activeTab, setActiveTab, availableSizes, availableColors
   } = useStore()
 
   const mainTabs = ['Model', 'Size', 'Color', 'Sides']
