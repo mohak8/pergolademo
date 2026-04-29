@@ -26,7 +26,7 @@ export default function Panel() {
 
         {/* Header */}
         <div className="mb-5">
-          <h1 className="text-xl md:text-2xl text-gray-900 font-bold tracking-tight">Pergola Setup</h1>
+          <h1 className="text-xl md:text-2xl text-gray-900 font-bold tracking-tight uppercase">{currentModel}</h1>
           <p className="text-xs md:text-sm text-gray-500 mt-1">Configure your premium space.</p>
         </div>
 
