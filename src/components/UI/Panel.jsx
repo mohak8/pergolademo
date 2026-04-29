@@ -6,7 +6,7 @@ export default function Panel() {
     currentModel, setModel, activeSide, screenA_Left, screenA_Right, screenB, screenC_Left, screenC_Right, screenD, currentSize,
     setActiveSide, toggleScreenA_Left, toggleScreenA_Right, toggleScreenB, toggleScreenC_Left, toggleScreenC_Right, toggleScreenD, setSize,
     isBreakdownVisible, toggleBreakdown, getTotalPrice, getBasePrice, getScreenPrice,
-    frameColor, setFrameColor, activeTab, setActiveTab, availableSizes, availableColors
+    frameColor, setFrameColor, activeTab, setActiveTab, availableSizes, availableColors, sizesConfig
   } = useStore()
 
   const mainTabs = ['Model', 'Size', 'Color', 'Sides']
@@ -141,32 +141,42 @@ export default function Panel() {
               <span className="text-[11px] font-medium text-gray-500 uppercase tracking-widest bg-gray-100 px-2.5 py-1 rounded-full">+ £300 each</span>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              {activeSide === 'A' && currentSize === '6x3' && (
-                <>
-                  <ProductCard title="Left Screen" price={screenPriceDisplay} isOn={screenA_Left} onToggle={toggleScreenA_Left} />
-                  <ProductCard title="Right Screen" price={screenPriceDisplay} isOn={screenA_Right} onToggle={toggleScreenA_Right} />
-                </>
-              )}
-              {activeSide === 'A' && currentSize !== '6x3' && (
-                <ProductCard title="Front Screen" price={screenPriceDisplay} isOn={screenA_Left} onToggle={toggleScreenA_Left} />
-              )}
+              {sizesConfig[currentSize]?.[`slide${activeSide}`]?.map((product, index) => {
+                let isOn = false;
+                let onToggle = () => {};
+                
+                // Determine which toggle to use based on side and index
+                if (activeSide === 'A') {
+                  isOn = index === 0 ? screenA_Left : screenA_Right;
+                  onToggle = index === 0 ? toggleScreenA_Left : toggleScreenA_Right;
+                } else if (activeSide === 'B') {
+                  isOn = screenB;
+                  onToggle = toggleScreenB;
+                } else if (activeSide === 'C') {
+                  isOn = index === 0 ? screenC_Left : screenC_Right;
+                  onToggle = index === 0 ? toggleScreenC_Left : toggleScreenC_Right;
+                } else if (activeSide === 'D') {
+                  isOn = screenD;
+                  onToggle = toggleScreenD;
+                }
 
-              {activeSide === 'B' && (
-                <ProductCard title="Side Screen" price={screenPriceDisplay} isOn={screenB} onToggle={toggleScreenB} />
-              )}
+                // Format price from Shopify (cents to pounds)
+                const priceVal = product.price > 1000 ? (product.price / 100).toFixed(0) : product.price;
 
-              {activeSide === 'C' && currentSize === '6x3' && (
-                <>
-                  <ProductCard title="Left Screen" price={screenPriceDisplay} isOn={screenC_Left} onToggle={toggleScreenC_Left} />
-                  <ProductCard title="Right Screen" price={screenPriceDisplay} isOn={screenC_Right} onToggle={toggleScreenC_Right} />
-                </>
-              )}
-              {activeSide === 'C' && currentSize !== '6x3' && (
-                <ProductCard title="Back Screen" price={screenPriceDisplay} isOn={screenC_Left} onToggle={toggleScreenC_Left} />
-              )}
-
-              {activeSide === 'D' && (
-                <ProductCard title="Side Screen" price={screenPriceDisplay} isOn={screenD} onToggle={toggleScreenD} />
+                return (
+                  <ProductCard 
+                    key={product.id || index}
+                    title={product.title} 
+                    price={`+ £${priceVal}`} 
+                    isOn={isOn} 
+                    onToggle={onToggle} 
+                  />
+                );
+              })}
+              {(!sizesConfig[currentSize]?.[`slide${activeSide}`] || sizesConfig[currentSize]?.[`slide${activeSide}`].length === 0) && (
+                <div className="col-span-2 py-8 text-center text-gray-400 text-xs italic bg-gray-50 rounded-xl border border-dashed border-gray-200">
+                  No accessories available for this side
+                </div>
               )}
             </div>
           </section>
