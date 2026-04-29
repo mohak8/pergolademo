@@ -144,45 +144,45 @@ export default function Panel() {
               {(() => {
                 const currentData = sizesConfig[currentSize] || {};
                 const currentSlide = currentData[`slide${activeSide}`] || [];
-                
+
                 if (currentSlide.length === 0) {
                   console.log(`DEBUG: No data found for Size: ${currentSize}, Slide: slide${activeSide}`);
                   console.log("DEBUG: Available Keys in sizesConfig:", Object.keys(sizesConfig));
                 }
-                
+
                 return currentSlide.map((product, index) => {
                   let isOn = false;
-                let onToggle = () => { };
+                  let onToggle = () => { };
 
-                // Determine which toggle to use based on side and index
-                if (activeSide === 'A') {
-                  isOn = index === 0 ? screenA_Left : screenA_Right;
-                  onToggle = index === 0 ? toggleScreenA_Left : toggleScreenA_Right;
-                } else if (activeSide === 'B') {
-                  isOn = screenB;
-                  onToggle = toggleScreenB;
-                } else if (activeSide === 'C') {
-                  isOn = index === 0 ? screenC_Left : screenC_Right;
-                  onToggle = index === 0 ? toggleScreenC_Left : toggleScreenC_Right;
-                } else if (activeSide === 'D') {
-                  isOn = screenD;
-                  onToggle = toggleScreenD;
-                }
+                  if (activeSide === 'A') {
+                    isOn = index === 0 ? screenA_Left : screenA_Right;
+                    onToggle = index === 0 ? toggleScreenA_Left : toggleScreenA_Right;
+                  } else if (activeSide === 'B') {
+                    isOn = screenB;
+                    onToggle = toggleScreenB;
+                  } else if (activeSide === 'C') {
+                    isOn = index === 0 ? screenC_Left : screenC_Right;
+                    onToggle = index === 0 ? toggleScreenC_Left : toggleScreenC_Right;
+                  } else if (activeSide === 'D') {
+                    isOn = screenD;
+                    onToggle = toggleScreenD;
+                  }
 
-                // Format price from Shopify (cents to pounds)
-                const priceVal = product.price > 1000 ? (product.price / 100).toFixed(0) : product.price;
+                  const priceVal = product.price > 1000 ? (product.price / 100).toFixed(0) : product.price;
 
-                return (
-                  <ProductCard
-                    key={product.id || index}
-                    title={product.title}
-                    price={`+ £${priceVal}`}
-                    isOn={isOn}
-                    onToggle={onToggle}
-                    image={product.featured_image}
-                  />
-                );
+                  return (
+                    <ProductCard
+                      key={product.id || index}
+                      title={product.title}
+                      price={`+ £${priceVal}`}
+                      isOn={isOn}
+                      onToggle={onToggle}
+                      image={product.featured_image}
+                    />
+                  );
+                });
               })()}
+
               {(!sizesConfig[currentSize]?.[`slide${activeSide}`] || sizesConfig[currentSize]?.[`slide${activeSide}`].length === 0) && (
                 <div className="col-span-2 py-8 text-center text-gray-400 text-xs italic bg-gray-50 rounded-xl border border-dashed border-gray-200">
                   No accessories available for this side
