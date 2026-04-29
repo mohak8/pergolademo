@@ -200,7 +200,9 @@ const useStore = create((set, get) => ({
       const uniqueColorsMap = new Map();
 
       targetProduct.variants.forEach(variant => {
-        const sizeVal = variant.options[sizeIdx] || 'Default';
+        const rawSize = variant.options[sizeIdx] || 'Default';
+        // Normalize: strip trailing 'm' so "3x3m" → "3x3" to match GLB file names
+        const sizeVal = rawSize.replace(/m$/i, '');
         const colorVal = variant.options[colorIdx] || 'Default';
 
         const key = `${sizeVal.replace(/\s/g, '')}_${colorVal}`;
@@ -219,14 +221,22 @@ const useStore = create((set, get) => ({
       const availableSizes = Array.from(uniqueSizes);
       const availableColors = Array.from(uniqueColorsMap.values());
 
-      const screenPrice = 300;
       const firstSize = availableSizes[0] || '3x3';
       const firstColor = availableColors[0] || { name: 'Charcoal', hex: '#333333' };
+
+      // Normalize sizesConfig keys: strip trailing 'm' so "3x3m" → "3x3" to match currentSize
+      const normalizedSizesConfig = {};
+      if (sizesConfig) {
+        Object.keys(sizesConfig).forEach(key => {
+          const normalizedKey = key.replace(/m$/i, '');
+          normalizedSizesConfig[normalizedKey] = sizesConfig[key];
+        });
+      }
 
       set({
         variantPrices: newVariantPrices,
         variantMetafields: variantMetafields || {},
-        sizesConfig: sizesConfig || {},
+        sizesConfig: normalizedSizesConfig,
         addonProducts: addonProducts || [],
         availableSizes,
         availableColors,
