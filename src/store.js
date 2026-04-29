@@ -131,14 +131,19 @@ const useStore = create((set, get) => ({
       const firstSize = availableSizes[0] || '3x3';
       const firstColor = availableColors[0] || { name: 'Charcoal', hex: '#333333' };
 
-      // Normalize keys in the grouping config too (e.g., sizesConfig["3x3m"] -> sizesConfig["3x3"])
+      // Normalize keys in the grouping config (e.g., sizesConfig["3x3m"] -> sizesConfig["3x3"])
       const normalizedSizesConfig = {};
       if (sizesConfig) {
         Object.keys(sizesConfig).forEach(key => {
-          const normalizedKey = key.replace(/m$/i, '');
-          normalizedSizesConfig[normalizedKey] = sizesConfig[key];
+          const rawData = sizesConfig[key];
+          const cleanKey = key.replace(/m$/i, '').trim();
+          normalizedSizesConfig[cleanKey] = rawData;
+          // Also keep the original key just in case
+          normalizedSizesConfig[key] = rawData;
         });
       }
+
+      console.log("DEBUG: Final Normalized Config Keys:", Object.keys(normalizedSizesConfig));
 
       set({
         variantPrices: newVariantPrices,
