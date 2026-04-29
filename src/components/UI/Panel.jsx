@@ -182,7 +182,7 @@ export default function Panel() {
                     image={product.featured_image}
                   />
                 );
-              })}
+              })()}
               {(!sizesConfig[currentSize]?.[`slide${activeSide}`] || sizesConfig[currentSize]?.[`slide${activeSide}`].length === 0) && (
                 <div className="col-span-2 py-8 text-center text-gray-400 text-xs italic bg-gray-50 rounded-xl border border-dashed border-gray-200">
                   No accessories available for this side
