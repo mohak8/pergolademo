@@ -146,8 +146,10 @@ export default function Panel() {
                 const currentSlide = currentData[`slide${activeSide}`] || [];
 
                 if (currentSlide.length === 0) {
-                  console.log(`DEBUG: No data found for Size: ${currentSize}, Slide: slide${activeSide}`);
-                  console.log("DEBUG: Available Keys in sizesConfig:", Object.keys(sizesConfig));
+                  console.log(`DEBUG: [MISSING] Size: ${currentSize}, Side: slide${activeSide}`);
+                } else {
+                  console.log(`DEBUG: [FOUND] Size: ${currentSize}, Side: slide${activeSide}, Items: ${currentSlide.length}`);
+                  console.log(`DEBUG: Products for this side:`, currentSlide.map(p => p.title));
                 }
 
                 return currentSlide.map((product, index) => {
