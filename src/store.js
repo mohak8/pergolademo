@@ -229,7 +229,6 @@ const useStore = create((set, get) => ({
     }
 
     // Create a unique ID for this bundle session
-    const bundleId = `bundle_${Date.now()}`;
 
     // Create a list of selected accessories for the summary
     const includedList = [];
@@ -244,9 +243,9 @@ const useStore = create((set, get) => ({
     const pergolaVariantId = 48666641531131; // 3x3m / A
     const screen1Id = 9284082598139;        // Side Blind 1
     const screen2Id = 9284082630907;        // Side Blind 2
-    
+
     const bundleId = `test_bundle_${Date.now()}`;
-    
+
     const properties = {
       '_bundle_id': bundleId,
       'Size': "3x3m",
