@@ -240,14 +240,16 @@ const useStore = create((set, get) => ({
     if (state.screenC_Right) includedList.push("Side C (Right)");
     if (state.screenD) includedList.push("Side D");
 
-    // Collect properties for the base product - Added _bundle_id for grouping
+    // Collect properties for the base product
     const properties = {
       '_bundle_id': bundleId,
+      'Size': state.currentSize,
+      'Screen Type': state.frameColorName, // This is now A, B, C, or D
       'Package': `Bundle of ${includedList.length + 1} items`,
       'Included': includedList.length > 0 ? includedList.join(', ') : 'Base Frame only',
       '_configurator_data': JSON.stringify({
         size: state.currentSize,
-        color: state.frameColorName,
+        screenType: state.frameColorName,
         screens: {
           A_Left: state.screenA_Left,
           A_Right: state.screenA_Right,
