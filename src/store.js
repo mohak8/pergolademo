@@ -15,7 +15,7 @@ const useStore = create((set, get) => ({
   frameColor: '#333333',
   frameColorName: 'Charcoal',
   activeHandle: '',
-  
+
   // Dynamic Catalog Data
   availableSizes: ['3x3', '4x3', '6x3'],
   availableColors: [
@@ -33,7 +33,7 @@ const useStore = create((set, get) => ({
   activeTab: 'Size',
   isLoading: false,
   error: null,
-  
+
   // Screen Toggles
   screenA_Left: false,
   screenA_Right: false,
@@ -41,7 +41,7 @@ const useStore = create((set, get) => ({
   screenC_Left: false,
   screenC_Right: false,
   screenD: false,
-  
+
   isBreakdownVisible: false,
   showDimensions: false,
 
@@ -81,9 +81,9 @@ const useStore = create((set, get) => ({
   toggleScreenC_Left: () => set((state) => ({ screenC_Left: !state.screenC_Left })),
   toggleScreenC_Right: () => set((state) => ({ screenC_Right: !state.screenC_Right })),
   toggleScreenD: () => set((state) => ({ screenD: !state.screenD })),
-  
-  setFrameColor: (hex, name) => set({ 
-    frameColor: hex, 
+
+  setFrameColor: (hex, name) => set({
+    frameColor: hex,
     frameColorName: name || 'Custom'
   }),
 
@@ -94,11 +94,11 @@ const useStore = create((set, get) => ({
     if (!data || !data.product) return;
 
     const { product, variantMetafields, addonProducts, sizesConfig } = data;
-    
+
     try {
       let sizeIdx = -1;
       let colorIdx = -1;
-      
+
       // Identify index of Size and Color options dynamically
       product.options.forEach((opt, i) => {
         const optName = (typeof opt === 'string' ? opt : (opt.name || '')).toLowerCase();
@@ -117,7 +117,7 @@ const useStore = create((set, get) => ({
 
       product.variants.forEach(variant => {
         const rawSize = variant.options[sizeIdx] || 'Default';
-        
+
         // AGGRESSIVE NORMALIZATION: remove 'm', spaces, and lowercase
         const sizeVal = rawSize.toLowerCase().replace(/m$/i, '').replace(/\s+/g, '').trim();
         const colorVal = variant.options[colorIdx] || 'Default';
@@ -137,7 +137,7 @@ const useStore = create((set, get) => ({
 
       const availableSizes = Array.from(uniqueSizes);
       const availableColors = Array.from(uniqueColorsMap.values());
-      
+
       const firstSize = availableSizes[0] || '3x3';
       const firstColor = availableColors[0] || { name: 'Charcoal', hex: '#333333' };
 
@@ -149,7 +149,7 @@ const useStore = create((set, get) => ({
           // Aggressive normalization: remove 'm', remove spaces, lowercase
           const cleanKey = key.toLowerCase().replace(/m$/i, '').replace(/\s+/g, '').trim();
           normalizedSizesConfig[cleanKey] = rawData;
-          
+
           // Also keep original key as fallback
           normalizedSizesConfig[key] = rawData;
         });
@@ -191,12 +191,12 @@ const useStore = create((set, get) => ({
     const base = state.variantPrices[key] || Object.values(state.variantPrices)[0] || 0;
 
     let total = base;
-    const slidesData = state.sizesConfig[state.currentSize] || {}; 
-    
+    const slidesData = state.sizesConfig[state.currentSize] || {};
+
     // Safely get price for specific blind products from Shopify config
     const getPrice = (side, index) => {
-       const p = slidesData[`slide${side}`]?.[index]?.price || 0;
-       return state.normalizePrice(p);
+      const p = slidesData[`slide${side}`]?.[index]?.price || 0;
+      return state.normalizePrice(p);
     };
 
     if (state.screenA_Left) total += getPrice('A', 0);
@@ -205,7 +205,7 @@ const useStore = create((set, get) => ({
     if (state.screenC_Left) total += getPrice('C', 0);
     if (state.screenC_Right) total += getPrice('C', 1);
     if (state.screenD) total += getPrice('D', 0);
-    
+
     return total;
   },
 
@@ -223,46 +223,44 @@ const useStore = create((set, get) => ({
       return;
     }
 
-    // Collect properties for the base product
+    // Collect properties for the base product - Removed redundant Size/Color to prevent duplicates
     const properties = {
-      'Size': state.currentSize,
-      'Color': state.frameColorName,
       '_configurator_data': JSON.stringify({
-         size: state.currentSize,
-         color: state.frameColorName,
-         screens: {
-           A_Left: state.screenA_Left,
-           A_Right: state.screenA_Right,
-           B: state.screenB,
-           C_Left: state.screenC_Left,
-           C_Right: state.screenC_Right,
-           D: state.screenD
-         }
+        size: state.currentSize,
+        color: state.frameColorName,
+        screens: {
+          A_Left: state.screenA_Left,
+          A_Right: state.screenA_Right,
+          B: state.screenB,
+          C_Left: state.screenC_Left,
+          C_Right: state.screenC_Right,
+          D: state.screenD
+        }
       })
     };
 
     // Collect variant IDs for selected screens/addons
     const items = [{ id: baseVariantId, quantity: 1, properties }];
-    
-    const addScreen = (side, index) => {
-       const screen = state.sizesConfig[state.currentSize]?.[`slide${side}`]?.[index];
-       if (screen) {
-         // Smart ID detection: 
-         // 1. If it's a product reference, use .variants[0].id
-         // 2. If it's a variant reference or has direct id, use .id
-         let variantId = null;
-         if (screen.variants && screen.variants.length > 0) {
-            variantId = screen.variants[0].id;
-         } else if (screen.id) {
-            variantId = screen.id;
-         }
 
-         if (variantId) {
-           items.push({ id: variantId, quantity: 1, properties: { 'Parent Product': state.currentModel } });
-         } else {
-           console.warn(`⚠️ No variant ID found for screen on Side ${side}, index ${index}`);
-         }
-       }
+    const addScreen = (side, index) => {
+      const screen = state.sizesConfig[state.currentSize]?.[`slide${side}`]?.[index];
+      if (screen) {
+        // Smart ID detection: 
+        // 1. If it's a product reference, use .variants[0].id
+        // 2. If it's a variant reference or has direct id, use .id
+        let variantId = null;
+        if (screen.variants && screen.variants.length > 0) {
+          variantId = screen.variants[0].id;
+        } else if (screen.id) {
+          variantId = screen.id;
+        }
+
+        if (variantId) {
+          items.push({ id: variantId, quantity: 1, properties: { 'Parent Product': state.currentModel } });
+        } else {
+          console.warn(`⚠️ No variant ID found for screen on Side ${side}, index ${index}`);
+        }
+      }
     };
 
     if (state.screenA_Left) addScreen('A', 0);
@@ -273,11 +271,11 @@ const useStore = create((set, get) => ({
     if (state.screenD) addScreen('D', 0);
 
     console.log("🛒 FINAL CART PAYLOAD:", items);
-    
+
     if (items.length === 1 && (state.screenA_Left || state.screenA_Right || state.screenB || state.screenC_Left || state.screenC_Right || state.screenD)) {
-       console.warn("⚠️ WARNING: Screens are selected but none were added to cart because they lack 'id' (Variant ID). Check your metafields.");
+      console.warn("⚠️ WARNING: Screens are selected but none were added to cart because they lack 'id' (Variant ID). Check your metafields.");
     }
-    
+
     // Notify parent window
     if (window.parent !== window) {
       window.parent.postMessage({
@@ -292,7 +290,7 @@ const useStore = create((set, get) => ({
     const key = `${state.currentSize.replace(/\s/g, '')}_${state.frameColorName}`;
     return state.variantPrices[key] || 0;
   },
-  
+
   getScreenPrice: () => 300 // Fallback estimate for UI display before selection
 }));
 
