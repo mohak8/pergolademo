@@ -6,7 +6,8 @@ export default function Panel() {
     currentModel, setModel, activeSide, screenA_Left, screenA_Right, screenB, screenC_Left, screenC_Right, screenD, currentSize,
     setActiveSide, toggleScreenA_Left, toggleScreenA_Right, toggleScreenB, toggleScreenC_Left, toggleScreenC_Right, toggleScreenD, setSize,
     isBreakdownVisible, toggleBreakdown, getTotalPrice, getBasePrice, getScreenPrice,
-    frameColor, setFrameColor, activeTab, setActiveTab, availableSizes, availableColors, sizesConfig
+    frameColor, setFrameColor, activeTab, setActiveTab, availableSizes, availableColors, sizesConfig,
+    normalizePrice, addToCart
   } = useStore()
 
   const mainTabs = ['Model', 'Size', 'Color', 'Sides']
@@ -163,7 +164,7 @@ export default function Panel() {
                     onToggle = toggleScreenD;
                   }
 
-                  const priceVal = product.price > 1000 ? (product.price / 100).toFixed(0) : product.price;
+                  const priceVal = normalizePrice(product.price).toFixed(0);
 
                   return (
                     <ProductCard
@@ -222,7 +223,10 @@ export default function Panel() {
           </div>
         )}
 
-        <button className="w-full py-3.5 bg-gray-900 hover:bg-black text-white rounded-lg text-sm font-semibold transition-all shadow-xl shadow-gray-900/20 active:scale-95 flex justify-between items-center px-5">
+        <button
+          onClick={addToCart}
+          className="w-full py-3.5 bg-gray-900 hover:bg-black text-white rounded-lg text-sm font-semibold transition-all shadow-xl shadow-gray-900/20 active:scale-95 flex justify-between items-center px-5"
+        >
           <span>Add to Cart</span>
           <span className="font-bold tracking-wide">£{getTotalPrice()}</span>
         </button>

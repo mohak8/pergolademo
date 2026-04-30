@@ -24,6 +24,7 @@ const useStore = create((set, get) => ({
     { name: 'Wood Finish', hex: '#8B5A2B' }
   ],
   variantPrices: {},
+  variantIds: {}, // Added to store mapping for Add to Cart
   sizesConfig: {},
   addonProducts: [],
 
@@ -46,11 +47,17 @@ const useStore = create((set, get) => ({
 
   // Actions
   setModel: (model) => set({ currentModel: model }),
-  setFrameColor: (hex, name) => set({ frameColor: hex, frameColorName: name || 'Custom' }),
   setActiveTab: (tab) => set({ activeTab: tab }),
   setActiveSide: (side) => set({ activeSide: side }),
   toggleBreakdown: () => set((state) => ({ isBreakdownVisible: !state.isBreakdownVisible })),
   toggleDimensions: () => set((state) => ({ showDimensions: !state.showDimensions })),
+
+  // Helper for consistent price normalization across the app
+  normalizePrice: (price) => {
+    if (!price) return 0;
+    const p = parseFloat(price);
+    return p > 1000 ? p / 100 : p;
+  },
 
   setSize: (newSize) => set((state) => {
     if (state.currentSize === newSize) return {};
@@ -77,7 +84,7 @@ const useStore = create((set, get) => ({
   
   setFrameColor: (hex, name) => set({ 
     frameColor: hex, 
-    frameColorName: name 
+    frameColorName: name || 'Custom'
   }),
 
   /**
@@ -104,6 +111,7 @@ const useStore = create((set, get) => ({
       if (colorIdx === -1 && product.options.length > 1) colorIdx = 1;
 
       const newVariantPrices = {};
+      const newVariantIds = {};
       const uniqueSizes = new Set();
       const uniqueColorsMap = new Map();
 
@@ -115,7 +123,8 @@ const useStore = create((set, get) => ({
         const colorVal = variant.options[colorIdx] || 'Default';
 
         const key = `${sizeVal}_${colorVal}`;
-        newVariantPrices[key] = variant.price > 1000 ? variant.price / 100 : variant.price;
+        newVariantPrices[key] = get().normalizePrice(variant.price);
+        newVariantIds[key] = variant.id;
 
         uniqueSizes.add(sizeVal);
         if (colorIdx !== -1 && !uniqueColorsMap.has(colorVal)) {
@@ -148,6 +157,7 @@ const useStore = create((set, get) => ({
 
       set({
         variantPrices: newVariantPrices,
+        variantIds: newVariantIds,
         sizesConfig: normalizedSizesConfig,
         addonProducts: addonProducts || [],
         availableSizes,
@@ -179,7 +189,7 @@ const useStore = create((set, get) => ({
     // Safely get price for specific blind products from Shopify config
     const getPrice = (side, index) => {
        const p = slidesData[`slide${side}`]?.[index]?.price || 0;
-       return p > 1000 ? p / 100 : p;
+       return state.normalizePrice(p);
     };
 
     if (state.screenA_Left) total += getPrice('A', 0);
@@ -190,6 +200,66 @@ const useStore = create((set, get) => ({
     if (state.screenD) total += getPrice('D', 0);
     
     return total;
+  },
+
+  /**
+   * Add to Cart logic: Collects selected variant IDs and properties 
+   * then sends a postMessage to the Shopify parent window.
+   */
+  addToCart: () => {
+    const state = get();
+    const key = `${state.currentSize.replace(/\s/g, '')}_${state.frameColorName}`;
+    const baseVariantId = state.variantIds[key] || Object.values(state.variantIds)[0];
+
+    if (!baseVariantId) {
+      console.error("❌ Add to Cart: No base variant ID found for selection", key);
+      return;
+    }
+
+    // Collect properties for the base product
+    const properties = {
+      'Size': state.currentSize,
+      'Color': state.frameColorName,
+      '_configurator_data': JSON.stringify({
+         size: state.currentSize,
+         color: state.frameColorName,
+         screens: {
+           A_Left: state.screenA_Left,
+           A_Right: state.screenA_Right,
+           B: state.screenB,
+           C_Left: state.screenC_Left,
+           C_Right: state.screenC_Right,
+           D: state.screenD
+         }
+      })
+    };
+
+    // Collect variant IDs for selected screens/addons
+    const items = [{ id: baseVariantId, quantity: 1, properties }];
+    
+    const addScreen = (side, index) => {
+       const screen = state.sizesConfig[state.currentSize]?.[`slide${side}`]?.[index];
+       if (screen && screen.id) {
+         items.push({ id: screen.id, quantity: 1, properties: { 'Parent Product': state.currentModel } });
+       }
+    };
+
+    if (state.screenA_Left) addScreen('A', 0);
+    if (state.screenA_Right) addScreen('A', 1);
+    if (state.screenB) addScreen('B', 0);
+    if (state.screenC_Left) addScreen('C', 0);
+    if (state.screenC_Right) addScreen('C', 1);
+    if (state.screenD) addScreen('D', 0);
+
+    console.log("🛒 ADD TO CART SIGNAL:", items);
+    
+    // Notify parent window
+    if (window.parent !== window) {
+      window.parent.postMessage({
+        type: 'ADD_TO_CART',
+        items: items
+      }, '*');
+    }
   },
 
   getBasePrice: () => {
