@@ -263,12 +263,11 @@ const useStore = create((set, get) => ({
     ];
     // ---------------------------------
 
+    /* 
+    // Temporarily disabled for Static Test
     const addScreen = (side, index) => {
       const screen = state.sizesConfig[state.currentSize]?.[`slide${side}`]?.[index];
       if (screen) {
-        // Smart ID detection: 
-        // 1. If it's a product reference, use .variants[0].id
-        // 2. If it's a variant reference or has direct id, use .id
         let variantId = null;
         if (screen.variants && screen.variants.length > 0) {
           variantId = screen.variants[0].id;
@@ -285,8 +284,6 @@ const useStore = create((set, get) => ({
               'Parent Product': state.currentModel
             }
           });
-        } else {
-          console.warn(`⚠️ No variant ID found for screen on Side ${side}, index ${index}`);
         }
       }
     };
@@ -297,8 +294,9 @@ const useStore = create((set, get) => ({
     if (state.screenC_Left) addScreen('C', 0);
     if (state.screenC_Right) addScreen('C', 1);
     if (state.screenD) addScreen('D', 0);
+    */
 
-    console.log("🛒 FINAL CART PAYLOAD:", items);
+    console.log("🛒 FINAL STATIC BUNDLE PAYLOAD:", items);
 
     if (items.length === 1 && (state.screenA_Left || state.screenA_Right || state.screenB || state.screenC_Left || state.screenC_Right || state.screenD)) {
       console.warn("⚠️ WARNING: Screens are selected but none were added to cart because they lack 'id' (Variant ID). Check your metafields.");
