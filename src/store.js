@@ -137,7 +137,7 @@ const useStore = create((set, get) => ({
 
       const availableSizes = Array.from(uniqueSizes);
       let availableColors = Array.from(uniqueColorsMap.values());
-      
+
       // If no screen options found, use default
       if (availableColors.length === 0) {
         availableColors = [{ name: 'Default', hex: '#808080' }];
@@ -241,28 +241,23 @@ const useStore = create((set, get) => ({
     if (state.screenD) includedList.push("Side D");
 
     // Collect properties for the base product
+    // --- STATIC TEST CONFIGURATION ---
+    const testVariantId = 48666641531131; // Real ID for 3x3m / A
     const properties = {
-      '_bundle_id': bundleId,
-      'Size': state.currentSize,
-      'Screen Type': state.frameColorName, // This is now A, B, C, or D
-      'Package': `Bundle of ${includedList.length + 1} items`,
-      'Included': includedList.length > 0 ? includedList.join(', ') : 'Base Frame only',
+      '_bundle_id': `test_${Date.now()}`,
+      'Size': "3x3m",
+      'Screen Type': "A",
+      'Package': "Customized Pergola (Test)",
+      'Included': "Side A, Side B (Static Test)",
       '_configurator_data': JSON.stringify({
-        size: state.currentSize,
-        screenType: state.frameColorName,
-        screens: {
-          A_Left: state.screenA_Left,
-          A_Right: state.screenA_Right,
-          B: state.screenB,
-          C_Left: state.screenC_Left,
-          C_Right: state.screenC_Right,
-          D: state.screenD
-        }
+        size: "3x3m",
+        screenType: "A",
+        screens: { A: true, B: true }
       })
     };
 
-    // Collect variant IDs for selected screens/addons
-    const items = [{ id: baseVariantId, quantity: 1, properties }];
+    const items = [{ id: testVariantId, quantity: 1, properties }];
+    // ---------------------------------
 
     const addScreen = (side, index) => {
       const screen = state.sizesConfig[state.currentSize]?.[`slide${side}`]?.[index];
