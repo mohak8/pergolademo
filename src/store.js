@@ -246,8 +246,22 @@ const useStore = create((set, get) => ({
     
     const addScreen = (side, index) => {
        const screen = state.sizesConfig[state.currentSize]?.[`slide${side}`]?.[index];
-       if (screen && screen.id) {
-         items.push({ id: screen.id, quantity: 1, properties: { 'Parent Product': state.currentModel } });
+       if (screen) {
+         // Smart ID detection: 
+         // 1. If it's a product reference, use .variants[0].id
+         // 2. If it's a variant reference or has direct id, use .id
+         let variantId = null;
+         if (screen.variants && screen.variants.length > 0) {
+            variantId = screen.variants[0].id;
+         } else if (screen.id) {
+            variantId = screen.id;
+         }
+
+         if (variantId) {
+           items.push({ id: variantId, quantity: 1, properties: { 'Parent Product': state.currentModel } });
+         } else {
+           console.warn(`⚠️ No variant ID found for screen on Side ${side}, index ${index}`);
+         }
        }
     };
 
