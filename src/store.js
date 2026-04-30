@@ -240,7 +240,6 @@ const useStore = create((set, get) => ({
     if (state.screenC_Right) includedList.push("Side C (Right)");
     if (state.screenD) includedList.push("Side D");
 
-    // Collect properties for the base product
     // --- STATIC TEST CONFIGURATION ---
     const testVariantId = 48666641531131; // Real ID for 3x3m / A
     const properties = {
