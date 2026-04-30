@@ -155,6 +155,13 @@ const useStore = create((set, get) => ({
         });
       }
 
+      console.log("🛠️ NORMALIZED CONFIG:", {
+        availableSizes,
+        availableColors,
+        variantIds: newVariantIds,
+        normalizedSizesConfig
+      });
+
       set({
         variantPrices: newVariantPrices,
         variantIds: newVariantIds,
@@ -251,7 +258,11 @@ const useStore = create((set, get) => ({
     if (state.screenC_Right) addScreen('C', 1);
     if (state.screenD) addScreen('D', 0);
 
-    console.log("🛒 ADD TO CART SIGNAL:", items);
+    console.log("🛒 FINAL CART PAYLOAD:", items);
+    
+    if (items.length === 1 && (state.screenA_Left || state.screenA_Right || state.screenB || state.screenC_Left || state.screenC_Right || state.screenD)) {
+       console.warn("⚠️ WARNING: Screens are selected but none were added to cart because they lack 'id' (Variant ID). Check your metafields.");
+    }
     
     // Notify parent window
     if (window.parent !== window) {
