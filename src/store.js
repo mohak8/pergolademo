@@ -226,9 +226,20 @@ const useStore = create((set, get) => ({
     // Create a unique ID for this bundle session
     const bundleId = `bundle_${Date.now()}`;
 
+    // Create a list of selected accessories for the summary
+    const includedList = [];
+    if (state.screenA_Left) includedList.push("Side A (Left)");
+    if (state.screenA_Right) includedList.push("Side A (Right)");
+    if (state.screenB) includedList.push("Side B");
+    if (state.screenC_Left) includedList.push("Side C (Left)");
+    if (state.screenC_Right) includedList.push("Side C (Right)");
+    if (state.screenD) includedList.push("Side D");
+
     // Collect properties for the base product - Added _bundle_id for grouping
     const properties = {
       '_bundle_id': bundleId,
+      'Package': `Bundle of ${includedList.length + 1} items`,
+      'Included': includedList.length > 0 ? includedList.join(', ') : 'Base Frame only',
       '_configurator_data': JSON.stringify({
         size: state.currentSize,
         color: state.frameColorName,
@@ -260,13 +271,13 @@ const useStore = create((set, get) => ({
         }
 
         if (variantId) {
-          items.push({ 
-            id: variantId, 
-            quantity: 1, 
-            properties: { 
+          items.push({
+            id: variantId,
+            quantity: 1,
+            properties: {
               '_bundle_id': bundleId,
-              'Parent Product': state.currentModel 
-            } 
+              'Parent Product': state.currentModel
+            }
           });
         } else {
           console.warn(`⚠️ No variant ID found for screen on Side ${side}, index ${index}`);
