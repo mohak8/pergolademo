@@ -240,22 +240,27 @@ const useStore = create((set, get) => ({
     if (state.screenC_Right) includedList.push("Side C (Right)");
     if (state.screenD) includedList.push("Side D");
 
-    // --- STATIC TEST CONFIGURATION ---
-    const testVariantId = 48666641531131; // Real ID for 3x3m / A
+    // --- REAL STATIC BUNDLE TEST ---
+    const pergolaVariantId = 48666641531131; // 3x3m / A
+    const screen1Id = 9284082598139;        // Side Blind 1
+    const screen2Id = 9284082630907;        // Side Blind 2
+    
+    const bundleId = `test_bundle_${Date.now()}`;
+    
     const properties = {
-      '_bundle_id': `test_${Date.now()}`,
+      '_bundle_id': bundleId,
       'Size': "3x3m",
       'Screen Type': "A",
-      'Package': "Customized Pergola (Test)",
-      'Included': "Side A, Side B (Static Test)",
-      '_configurator_data': JSON.stringify({
-        size: "3x3m",
-        screenType: "A",
-        screens: { A: true, B: true }
-      })
+      'Package': "Pergola Plus Bundle (Real Test)",
+      'Included': "Side Blind 1, Side Blind 2",
+      '_configurator_data': JSON.stringify({ size: "3x3m", screenType: "A" })
     };
 
-    const items = [{ id: testVariantId, quantity: 1, properties }];
+    const items = [
+      { id: pergolaVariantId, quantity: 1, properties },
+      { id: screen1Id, quantity: 1, properties: { '_bundle_id': bundleId, 'Parent Product': 'Pergola Plus' } },
+      { id: screen2Id, quantity: 1, properties: { '_bundle_id': bundleId, 'Parent Product': 'Pergola Plus' } }
+    ];
     // ---------------------------------
 
     const addScreen = (side, index) => {
