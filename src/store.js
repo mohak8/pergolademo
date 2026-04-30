@@ -99,13 +99,16 @@ const useStore = create((set, get) => ({
       let sizeIdx = -1;
       let colorIdx = -1;
 
-      const optionIndices = {};
+      // Identify index of Size and Color options dynamically
       product.options.forEach((opt, i) => {
-        const name = (typeof opt === 'string' ? opt : (opt.name || '')).toLowerCase().trim();
-        optionIndices[name] = i;
+        const optName = (typeof opt === 'string' ? opt : (opt.name || '')).toLowerCase();
+        if (optName.includes('size')) sizeIdx = i;
+        if (optName.includes('color') || optName.includes('finish')) colorIdx = i;
       });
 
-      console.log("🔍 DETECTED OPTIONS:", optionIndices);
+      // Default to first option if not found
+      if (sizeIdx === -1) sizeIdx = 0;
+      if (colorIdx === -1 && product.options.length > 1) colorIdx = 1;
 
       const newVariantPrices = {};
       const newVariantIds = {};
@@ -113,25 +116,23 @@ const useStore = create((set, get) => ({
       const uniqueColorsMap = new Map();
 
       product.variants.forEach(variant => {
-        const sizeRaw = variant.options[optionIndices['size']] || variant.options[0] || 'Default';
-        const sizeVal = sizeRaw.toLowerCase().replace(/m$/i, '').replace(/\s+/g, '').trim();
-        
-        // Dynamic key based on what options exist
-        let keyParts = [sizeVal];
-        
-        ['a', 'b', 'c', 'd'].forEach(letter => {
-          const idx = optionIndices[letter] ?? optionIndices[`side ${letter}`];
-          if (idx !== undefined) {
-             const val = variant.options[idx];
-             keyParts.push(`${letter}:${val}`);
-          }
-        });
+        const rawSize = variant.options[sizeIdx] || 'Default';
 
-        const key = keyParts.join('_');
-        
+        // AGGRESSIVE NORMALIZATION: remove 'm', spaces, and lowercase
+        const sizeVal = rawSize.toLowerCase().replace(/m$/i, '').replace(/\s+/g, '').trim();
+        const colorVal = variant.options[colorIdx] || 'Default';
+
+        const key = `${sizeVal}_${colorVal}`;
         newVariantPrices[key] = get().normalizePrice(variant.price);
         newVariantIds[key] = variant.id;
+
         uniqueSizes.add(sizeVal);
+        if (colorIdx !== -1 && !uniqueColorsMap.has(colorVal)) {
+          uniqueColorsMap.set(colorVal, {
+            name: colorVal,
+            hex: COLOR_DICTIONARY[colorVal.toLowerCase()] || '#808080'
+          });
+        }
       });
 
       const availableSizes = Array.from(uniqueSizes);
@@ -214,19 +215,8 @@ const useStore = create((set, get) => ({
    */
   addToCart: () => {
     const state = get();
-    
-    // Construct the variant key based on current selections
-    const sizeKey = state.currentSize.toLowerCase().replace(/m$/i, '').replace(/\s+/g, '').trim();
-    const a = state.screenA_Left || state.screenA_Right ? 'Yes' : 'No';
-    const b = state.screenB ? 'Yes' : 'No';
-    const c = state.screenC_Left || state.screenC_Right ? 'Yes' : 'No';
-    const d = state.screenD ? 'Yes' : 'No';
-
-    const key = `${sizeKey}_A:${a}_B:${b}_C:${c}_D:${d}`;
+    const key = `${state.currentSize.replace(/\s/g, '')}_${state.frameColorName}`;
     const baseVariantId = state.variantIds[key] || Object.values(state.variantIds)[0];
-
-    console.log("🎯 TARGET VARIANT KEY:", key);
-    console.log("🆔 FOUND VARIANT ID:", baseVariantId);
 
     if (!baseVariantId) {
       console.error("❌ Add to Cart: No base variant ID found for selection", key);
@@ -245,25 +235,64 @@ const useStore = create((set, get) => ({
     if (state.screenC_Right) includedList.push("Side C (Right)");
     if (state.screenD) includedList.push("Side D");
 
-    // Collect properties for the base product - Single Variant Bundle
+    // Collect properties for the base product - Added _bundle_id for grouping
     const properties = {
-      'Package': includedList.length > 0 ? `Customized Bundle (${includedList.length + 1} items)` : 'Standard Pergola',
+      '_bundle_id': bundleId,
+      'Package': `Bundle of ${includedList.length + 1} items`,
       'Included': includedList.length > 0 ? includedList.join(', ') : 'Base Frame only',
       '_configurator_data': JSON.stringify({
         size: state.currentSize,
+        color: state.frameColorName,
         screens: {
-          A: state.screenA_Left || state.screenA_Right,
+          A_Left: state.screenA_Left,
+          A_Right: state.screenA_Right,
           B: state.screenB,
-          C: state.screenC_Left || state.screenC_Right,
+          C_Left: state.screenC_Left,
+          C_Right: state.screenC_Right,
           D: state.screenD
         }
       })
     };
 
-    // ONLY add the main Pergola variant (Screens are now part of this variant)
+    // Collect variant IDs for selected screens/addons
     const items = [{ id: baseVariantId, quantity: 1, properties }];
 
-    console.log("🛒 FINAL CART PAYLOAD (Single Variant):", items);
+    const addScreen = (side, index) => {
+      const screen = state.sizesConfig[state.currentSize]?.[`slide${side}`]?.[index];
+      if (screen) {
+        // Smart ID detection: 
+        // 1. If it's a product reference, use .variants[0].id
+        // 2. If it's a variant reference or has direct id, use .id
+        let variantId = null;
+        if (screen.variants && screen.variants.length > 0) {
+          variantId = screen.variants[0].id;
+        } else if (screen.id) {
+          variantId = screen.id;
+        }
+
+        if (variantId) {
+          items.push({
+            id: variantId,
+            quantity: 1,
+            properties: {
+              '_bundle_id': bundleId,
+              'Parent Product': state.currentModel
+            }
+          });
+        } else {
+          console.warn(`⚠️ No variant ID found for screen on Side ${side}, index ${index}`);
+        }
+      }
+    };
+
+    if (state.screenA_Left) addScreen('A', 0);
+    if (state.screenA_Right) addScreen('A', 1);
+    if (state.screenB) addScreen('B', 0);
+    if (state.screenC_Left) addScreen('C', 0);
+    if (state.screenC_Right) addScreen('C', 1);
+    if (state.screenD) addScreen('D', 0);
+
+    console.log("🛒 FINAL CART PAYLOAD:", items);
 
     if (items.length === 1 && (state.screenA_Left || state.screenA_Right || state.screenB || state.screenC_Left || state.screenC_Right || state.screenD)) {
       console.warn("⚠️ WARNING: Screens are selected but none were added to cart because they lack 'id' (Variant ID). Check your metafields.");
