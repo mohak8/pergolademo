@@ -103,12 +103,16 @@ const useStore = create((set, get) => ({
       product.options.forEach((opt, i) => {
         const optName = (typeof opt === 'string' ? opt : (opt.name || '')).toLowerCase();
         if (optName.includes('size')) sizeIdx = i;
-        if (optName.includes('color') || optName.includes('finish')) colorIdx = i;
+        if (optName.includes('color') || optName.includes('finish')) {
+           // Ensure it's not one of the screen options
+           if (!['a', 'b', 'c', 'd'].includes(optName.trim())) {
+              colorIdx = i;
+           }
+        }
       });
 
-      // Default to first option if not found
+      // Default behavior if not found
       if (sizeIdx === -1) sizeIdx = 0;
-      if (colorIdx === -1 && product.options.length > 1) colorIdx = 1;
 
       const newVariantPrices = {};
       const newVariantIds = {};
@@ -136,7 +140,12 @@ const useStore = create((set, get) => ({
       });
 
       const availableSizes = Array.from(uniqueSizes);
-      const availableColors = Array.from(uniqueColorsMap.values());
+      let availableColors = Array.from(uniqueColorsMap.values());
+      
+      // Fallback if no colors found in Shopify
+      if (availableColors.length === 0) {
+        availableColors = [{ name: 'Charcoal', hex: '#333333' }];
+      }
 
       const firstSize = availableSizes[0] || '3x3';
       const firstColor = availableColors[0] || { name: 'Charcoal', hex: '#333333' };
