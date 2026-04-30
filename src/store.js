@@ -99,20 +99,16 @@ const useStore = create((set, get) => ({
       let sizeIdx = -1;
       let colorIdx = -1;
 
-      // Identify index of Size and Color options dynamically
+      // Identify index of Size and Screen options dynamically
       product.options.forEach((opt, i) => {
         const optName = (typeof opt === 'string' ? opt : (opt.name || '')).toLowerCase();
         if (optName.includes('size')) sizeIdx = i;
-        if (optName.includes('color') || optName.includes('finish')) {
-           // Ensure it's not one of the screen options
-           if (!['a', 'b', 'c', 'd'].includes(optName.trim())) {
-              colorIdx = i;
-           }
-        }
+        if (optName.includes('screen')) colorIdx = i; // Map 'Screen' option to the second variation index
       });
 
       // Default behavior if not found
       if (sizeIdx === -1) sizeIdx = 0;
+      if (colorIdx === -1 && product.options.length > 1) colorIdx = 1;
 
       const newVariantPrices = {};
       const newVariantIds = {};
@@ -142,9 +138,9 @@ const useStore = create((set, get) => ({
       const availableSizes = Array.from(uniqueSizes);
       let availableColors = Array.from(uniqueColorsMap.values());
       
-      // Fallback if no colors found in Shopify
+      // If no screen options found, use default
       if (availableColors.length === 0) {
-        availableColors = [{ name: 'Charcoal', hex: '#333333' }];
+        availableColors = [{ name: 'Default', hex: '#808080' }];
       }
 
       const firstSize = availableSizes[0] || '3x3';
