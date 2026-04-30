@@ -223,8 +223,12 @@ const useStore = create((set, get) => ({
       return;
     }
 
-    // Collect properties for the base product - Removed redundant Size/Color to prevent duplicates
+    // Create a unique ID for this bundle session
+    const bundleId = `bundle_${Date.now()}`;
+
+    // Collect properties for the base product - Added _bundle_id for grouping
     const properties = {
+      '_bundle_id': bundleId,
       '_configurator_data': JSON.stringify({
         size: state.currentSize,
         color: state.frameColorName,
@@ -256,7 +260,14 @@ const useStore = create((set, get) => ({
         }
 
         if (variantId) {
-          items.push({ id: variantId, quantity: 1, properties: { 'Parent Product': state.currentModel } });
+          items.push({ 
+            id: variantId, 
+            quantity: 1, 
+            properties: { 
+              '_bundle_id': bundleId,
+              'Parent Product': state.currentModel 
+            } 
+          });
         } else {
           console.warn(`⚠️ No variant ID found for screen on Side ${side}, index ${index}`);
         }
