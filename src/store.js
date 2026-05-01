@@ -138,17 +138,20 @@ const useStore = create((set, get) => ({
     if (state.screenC_Right) selectedScreens.push('Side C (Right)');
     if (state.screenD) selectedScreens.push('Side D');
 
-    const screensText = selectedScreens.length > 0 ? selectedScreens.join(', ') : 'None';
+    const parentProperties = {
+      '_bundle_id': bundleId,
+      '_bundle_role': 'parent'
+    };
+
+    if (selectedScreens.length > 0) {
+      parentProperties['Selected Screens'] = selectedScreens.join(', ');
+    }
 
     // 2. Add Main Pergola Frame (Parent)
     items.push({
       id: mainVariant.id,
       quantity: 1,
-      properties: {
-        'Selected Screens': screensText,
-        '_bundle_id': bundleId,
-        '_bundle_role': 'parent'
-      }
+      properties: parentProperties
     });
 
     // 3. Add Screens (Children)
