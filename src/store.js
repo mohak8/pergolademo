@@ -119,7 +119,7 @@ const useStore = create((set, get) => ({
 
   addToCart: () => {
     const state = get();
-
+    
     const mainVariant = state.getMainVariant();
     if (!mainVariant) {
       console.warn("No Shopify Data available yet!");
@@ -127,10 +127,6 @@ const useStore = create((set, get) => ({
     }
 
     const items = [];
-    const bundleId = Date.now().toString(); // Restore bundle ID for grouping
-
-    // 1. Add Main Pergola
-    // This bundleId links all related items together for theme-side grouping
     const bundleId = Date.now().toString(); 
 
     // 1. Add Main Pergola Frame
@@ -139,7 +135,7 @@ const useStore = create((set, get) => ({
       quantity: 1,
       properties: {
         'Model': state.currentModel,
-        '_bundle_id': bundleId // Hidden property for grouping
+        '_bundle_id': bundleId
       }
     });
 
@@ -161,7 +157,7 @@ const useStore = create((set, get) => ({
         quantity: screenQuantity,
         properties: {
           'Positions': selectedScreens.join(', '),
-          '_bundle_id': bundleId // Links this screen item to the pergola above
+          '_bundle_id': bundleId
         }
       });
     }
@@ -171,7 +167,7 @@ const useStore = create((set, get) => ({
       items: items
     };
 
-    console.log("🚀 MULTI-ITEM BUNDLE DISPATCH:", payload);
+    console.log("🚀 FINAL BUNDLE DISPATCH:", payload);
     
     set({ isAddingToCart: true });
 
