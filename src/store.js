@@ -119,7 +119,7 @@ const useStore = create((set, get) => ({
 
   addToCart: () => {
     const state = get();
-    
+
     const mainVariant = state.getMainVariant();
     if (!mainVariant) {
       console.warn("No Shopify Data available yet!");
@@ -127,24 +127,29 @@ const useStore = create((set, get) => ({
     }
 
     const items = [];
-    const bundleId = Date.now().toString(); 
+    const bundleId = Date.now().toString();
 
-    // 1. Prepare Screens Summary
+    // 1. Prepare Screens Summary based on size
+    const is6x3 = state.currentSize === '6x3m';
     const selectedScreens = [];
-    if (state.screenA_Left) selectedScreens.push('Side A (Left)');
-    if (state.screenA_Right) selectedScreens.push('Side A (Right)');
+
+    if (state.screenA_Left) selectedScreens.push(is6x3 ? 'Side A (Left)' : 'Side A');
+    if (state.screenA_Right) selectedScreens.push(is6x3 ? 'Side A (Right)' : 'Side A');
     if (state.screenB) selectedScreens.push('Side B');
-    if (state.screenC_Left) selectedScreens.push('Side C (Left)');
-    if (state.screenC_Right) selectedScreens.push('Side C (Right)');
+    if (state.screenC_Left) selectedScreens.push(is6x3 ? 'Side C (Left)' : 'Side C');
+    if (state.screenC_Right) selectedScreens.push(is6x3 ? 'Side C (Right)' : 'Side C');
     if (state.screenD) selectedScreens.push('Side D');
+
+    // Remove duplicates if size is not 6x3m
+    const uniqueScreens = [...new Set(selectedScreens)];
 
     const parentProperties = {
       '_bundle_id': bundleId,
       '_bundle_role': 'parent'
     };
 
-    if (selectedScreens.length > 0) {
-      parentProperties['Selected Screens'] = selectedScreens.join(', ');
+    if (uniqueScreens.length > 0) {
+      parentProperties['Selected Screens'] = uniqueScreens.join(', ');
     }
 
     // 2. Add Main Pergola Frame (Parent)
@@ -156,7 +161,7 @@ const useStore = create((set, get) => ({
 
     // 3. Add Screens (Children)
     const screenVariantId = state.getScreenVariantId();
-    let screenQuantity = selectedScreens.length;
+    let screenQuantity = selectedScreens.length; // Keep actual count for checkout
 
     if (screenQuantity > 0) {
       items.push({
@@ -176,7 +181,7 @@ const useStore = create((set, get) => ({
     };
 
     console.log("🚀 CLEAN BUNDLE DISPATCH:", payload);
-    
+
     set({ isAddingToCart: true });
 
     // Actually send to Shopify via parent window
