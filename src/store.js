@@ -144,7 +144,7 @@ const useStore = create((set, get) => ({
     const uniqueScreens = [...new Set(selectedScreens)];
 
     const parentProperties = {
-      '_bundle_text': `Bundle of ${1 + selectedScreens.length} items`,
+      'Bundle Info': `Bundle of ${1 + selectedScreens.length} items`,
       '_bundle_id': bundleId,
       '_bundle_role': 'parent'
     };
