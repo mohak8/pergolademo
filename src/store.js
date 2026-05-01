@@ -136,7 +136,7 @@ const useStore = create((set, get) => ({
       properties: {
         'Model': state.currentModel,
         '_bundle_id': bundleId,
-        '_bundle_role': 'parent' // Marker for main item
+        '_bundle_role': 'parent'
       }
     });
 
@@ -159,7 +159,8 @@ const useStore = create((set, get) => ({
         properties: {
           'Positions': selectedScreens.join(', '),
           '_bundle_id': bundleId,
-          '_bundle_role': 'child' // Marker for addon items
+          '_bundle_role': 'child',
+          '_parent_id': mainVariant.id // Explicitly link to parent variant ID
         }
       });
     }
@@ -169,7 +170,7 @@ const useStore = create((set, get) => ({
       items: items
     };
 
-    console.log("🚀 ROLE-BASED BUNDLE DISPATCH:", payload);
+    console.log("🚀 PARENT-LINKED BUNDLE DISPATCH:", payload);
     
     set({ isAddingToCart: true });
 
