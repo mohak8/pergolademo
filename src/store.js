@@ -20,14 +20,14 @@ const useStore = create((set, get) => ({
   currentSize: '3x3', // React model size reference (UI internal state)
   activeTab: 'Size',
   setActiveTab: (tab) => set({ activeTab: tab }),
-  
+
   screenA_Left: false,
   screenA_Right: false,
   screenB: false,
   screenC_Left: false,
   screenC_Right: false,
   screenD: false,
-  
+
   isBreakdownVisible: false,
   showDimensions: false,
   toggleDimensions: () => set((state) => ({ showDimensions: !state.showDimensions })),
@@ -63,13 +63,13 @@ const useStore = create((set, get) => ({
   getMainVariant: () => {
     const state = get();
     if (!state.shopifyData || !state.shopifyData.product) return null;
-    
+
     const targetSizeStr = state.currentSize + 'm'; // e.g. "3x3m"
     const targetColorStr = COLOR_MAP[state.frameColor] || 'Charcoal'; // e.g. "Charcoal"
 
     const variants = state.shopifyData.product.variants;
     // We assume option1 is size and option2 is color (or vice versa)
-    const variant = variants.find(v => 
+    const variant = variants.find(v =>
       (v.option1 === targetSizeStr || v.option2 === targetSizeStr || v.title.includes(targetSizeStr)) &&
       (v.option1 === targetColorStr || v.option2 === targetColorStr || v.title.includes(targetColorStr))
     );
@@ -107,7 +107,7 @@ const useStore = create((set, get) => ({
     const state = get();
     let total = state.getBasePrice();
     const screenPrice = state.getScreenPrice();
-    
+
     if (state.screenA_Left) total += screenPrice;
     if (state.screenA_Right) total += screenPrice;
     if (state.screenB) total += screenPrice;
@@ -119,38 +119,59 @@ const useStore = create((set, get) => ({
 
   addToCart: () => {
     const state = get();
-    
+
     const mainVariant = state.getMainVariant();
     if (!mainVariant) {
       console.warn("No Shopify Data available yet!");
       return;
     }
 
-    // 1. Collect selected screens into a single list
-    const selectedScreens = [];
-    if (state.screenA_Left) selectedScreens.push('Side A (Left)');
-    if (state.screenA_Right) selectedScreens.push('Side A (Right)');
-    if (state.screenB) selectedScreens.push('Side B');
-    if (state.screenC_Left) selectedScreens.push('Side C (Left)');
-    if (state.screenC_Right) selectedScreens.push('Side C (Right)');
-    if (state.screenD) selectedScreens.push('Side D');
+    const items = [];
+    const bundleId = Date.now().toString(); // Restore bundle ID for grouping
 
-    // 2. Prepare single item payload (Main Pergola with all options in properties)
-    const items = [{
+    // 1. Add Main Pergola
+    // This bundleId links all related items together for theme-side grouping
+    const bundleId = Date.now().toString(); 
+
+    // 1. Add Main Pergola Frame
+    items.push({
       id: mainVariant.id,
       quantity: 1,
       properties: {
         'Model': state.currentModel,
-        'Selected Screens': selectedScreens.length > 0 ? selectedScreens.join(', ') : 'None'
+        '_bundle_id': bundleId // Hidden property for grouping
       }
-    }];
+    });
+
+    // 2. Add Screens (Blinds)
+    const screenVariantId = state.getScreenVariantId();
+    let screenQuantity = 0;
+    const selectedScreens = [];
+
+    if (state.screenA_Left) { screenQuantity++; selectedScreens.push('Side A (Left)'); }
+    if (state.screenA_Right) { screenQuantity++; selectedScreens.push('Side A (Right)'); }
+    if (state.screenB) { screenQuantity++; selectedScreens.push('Side B'); }
+    if (state.screenC_Left) { screenQuantity++; selectedScreens.push('Side C (Left)'); }
+    if (state.screenC_Right) { screenQuantity++; selectedScreens.push('Side C (Right)'); }
+    if (state.screenD) { screenQuantity++; selectedScreens.push('Side D'); }
+
+    if (screenQuantity > 0) {
+      items.push({
+        id: screenVariantId,
+        quantity: screenQuantity,
+        properties: {
+          'Positions': selectedScreens.join(', '),
+          '_bundle_id': bundleId // Links this screen item to the pergola above
+        }
+      });
+    }
 
     const payload = {
       type: 'ADD_TO_CART',
       items: items
     };
 
-    console.log("🚀 SINGLE ITEM ADD TO CART:", payload);
+    console.log("🚀 MULTI-ITEM BUNDLE DISPATCH:", payload);
     
     set({ isAddingToCart: true });
 
