@@ -129,36 +129,38 @@ const useStore = create((set, get) => ({
     const items = [];
     const bundleId = Date.now().toString(); 
 
-    // 1. Add Main Pergola Frame (Parent)
+    // 1. Prepare Screens Summary
+    const selectedScreens = [];
+    if (state.screenA_Left) selectedScreens.push('Side A (Left)');
+    if (state.screenA_Right) selectedScreens.push('Side A (Right)');
+    if (state.screenB) selectedScreens.push('Side B');
+    if (state.screenC_Left) selectedScreens.push('Side C (Left)');
+    if (state.screenC_Right) selectedScreens.push('Side C (Right)');
+    if (state.screenD) selectedScreens.push('Side D');
+
+    const screensText = selectedScreens.length > 0 ? selectedScreens.join(', ') : 'None';
+
+    // 2. Add Main Pergola Frame (Parent)
     items.push({
       id: mainVariant.id,
       quantity: 1,
       properties: {
-        'Model': state.currentModel,
+        'Selected Screens': screensText,
         '_bundle_id': bundleId,
         '_bundle_role': 'parent'
       }
     });
 
-    // 2. Add Screens (Children)
+    // 3. Add Screens (Children)
     const screenVariantId = state.getScreenVariantId();
-    let screenQuantity = 0;
-    const selectedScreens = [];
-
-    if (state.screenA_Left) { screenQuantity++; selectedScreens.push('Side A (Left)'); }
-    if (state.screenA_Right) { screenQuantity++; selectedScreens.push('Side A (Right)'); }
-    if (state.screenB) { screenQuantity++; selectedScreens.push('Side B'); }
-    if (state.screenC_Left) { screenQuantity++; selectedScreens.push('Side C (Left)'); }
-    if (state.screenC_Right) { screenQuantity++; selectedScreens.push('Side C (Right)'); }
-    if (state.screenD) { screenQuantity++; selectedScreens.push('Side D'); }
+    let screenQuantity = selectedScreens.length;
 
     if (screenQuantity > 0) {
       items.push({
         id: screenVariantId,
         quantity: screenQuantity,
-        parent_id: mainVariant.id, // Sent directly as a top-level key
+        parent_id: mainVariant.id,
         properties: {
-          'Positions': selectedScreens.join(', '),
           '_bundle_id': bundleId,
           '_bundle_role': 'child'
         }
@@ -170,7 +172,7 @@ const useStore = create((set, get) => ({
       items: items
     };
 
-    console.log("🚀 DIRECT LINK BUNDLE DISPATCH:", payload);
+    console.log("🚀 CLEAN BUNDLE DISPATCH:", payload);
     
     set({ isAddingToCart: true });
 
