@@ -84,10 +84,10 @@ const useStore = create((set, get) => ({
 
   getScreenVariantId: () => {
     const state = get();
-    // For now we get the first Addon Product's first variant ID from metafields
-    const addons = state.shopifyData?.metafields?.addonProducts;
-    if (addons && addons.length > 0 && addons[0].variants && addons[0].variants.length > 0) {
-      return addons[0].variants[0].id;
+    // Use 'sideBline' metafield for screen product data
+    const screenProduct = state.shopifyData?.metafields?.sideBline;
+    if (screenProduct && screenProduct.variants && screenProduct.variants.length > 0) {
+      return screenProduct.variants[0].id;
     }
     // Fallback ID if not setup yet
     return 123456789;
@@ -95,12 +95,12 @@ const useStore = create((set, get) => ({
 
   getScreenPrice: () => {
     const state = get();
-    const addons = state.shopifyData?.metafields?.addonProducts;
-    if (addons && addons.length > 0) {
-      // Products have price in cents usually
-      return (addons[0].price || 30000) / 100;
+    const screenProduct = state.shopifyData?.metafields?.sideBline;
+    if (screenProduct) {
+      // Use price from sideBline product
+      return (screenProduct.price || 35000) / 100;
     }
-    return 300; // Static fallback
+    return 350; // Static fallback
   },
 
   getTotalPrice: () => {
@@ -127,7 +127,6 @@ const useStore = create((set, get) => ({
     }
 
     const items = [];
-    const bundleId = Date.now().toString(); // Unique ID to link main product and addons together
 
     // 1. Add Main Pergola
     items.push({
@@ -136,8 +135,7 @@ const useStore = create((set, get) => ({
       properties: {
         'Model': state.currentModel,
         'Size': state.currentSize,
-        'Color': COLOR_MAP[state.frameColor] || state.frameColor,
-        '_bundle_id': bundleId // Hidden property for grouping
+        'Color': COLOR_MAP[state.frameColor] || state.frameColor
       }
     });
 
@@ -158,8 +156,7 @@ const useStore = create((set, get) => ({
         id: screenVariantId,
         quantity: screenQuantity,
         properties: {
-          'Positions': selectedScreens.join(', '),
-          '_bundle_id': bundleId // Same ID to link with the main Pergola
+          'Positions': selectedScreens.join(', ')
         }
       });
     }
@@ -169,7 +166,7 @@ const useStore = create((set, get) => ({
       items: items
     };
 
-    console.log("🚀 DYNAMIC BUNDLE ADD TO CART:", payload);
+    console.log("🚀 DYNAMIC ADD TO CART (sideBline):", payload);
     
     set({ isAddingToCart: true });
 
