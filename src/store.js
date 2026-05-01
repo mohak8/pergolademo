@@ -156,11 +156,11 @@ const useStore = create((set, get) => ({
       items.push({
         id: screenVariantId,
         quantity: screenQuantity,
+        parent_id: mainVariant.id, // Sent directly as a top-level key
         properties: {
           'Positions': selectedScreens.join(', '),
           '_bundle_id': bundleId,
-          '_bundle_role': 'child',
-          '_parent_id': mainVariant.id // Explicitly link to parent variant ID
+          '_bundle_role': 'child'
         }
       });
     }
@@ -170,7 +170,7 @@ const useStore = create((set, get) => ({
       items: items
     };
 
-    console.log("🚀 PARENT-LINKED BUNDLE DISPATCH:", payload);
+    console.log("🚀 DIRECT LINK BUNDLE DISPATCH:", payload);
     
     set({ isAddingToCart: true });
 
