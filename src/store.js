@@ -129,17 +129,18 @@ const useStore = create((set, get) => ({
     const items = [];
     const bundleId = Date.now().toString(); 
 
-    // 1. Add Main Pergola Frame
+    // 1. Add Main Pergola Frame (Parent)
     items.push({
       id: mainVariant.id,
       quantity: 1,
       properties: {
         'Model': state.currentModel,
-        '_bundle_id': bundleId
+        '_bundle_id': bundleId,
+        '_bundle_role': 'parent' // Marker for main item
       }
     });
 
-    // 2. Add Screens (Blinds)
+    // 2. Add Screens (Children)
     const screenVariantId = state.getScreenVariantId();
     let screenQuantity = 0;
     const selectedScreens = [];
@@ -157,7 +158,8 @@ const useStore = create((set, get) => ({
         quantity: screenQuantity,
         properties: {
           'Positions': selectedScreens.join(', '),
-          '_bundle_id': bundleId
+          '_bundle_id': bundleId,
+          '_bundle_role': 'child' // Marker for addon items
         }
       });
     }
@@ -167,7 +169,7 @@ const useStore = create((set, get) => ({
       items: items
     };
 
-    console.log("🚀 FINAL BUNDLE DISPATCH:", payload);
+    console.log("🚀 ROLE-BASED BUNDLE DISPATCH:", payload);
     
     set({ isAddingToCart: true });
 
