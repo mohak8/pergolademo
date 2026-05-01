@@ -13,7 +13,13 @@ function App() {
       const allowedOrigins = ['https://pergolademo.vercel.app', 'http://localhost:5173'];
       
       if (event.data && event.data.type === 'SHOPIFY_PRODUCT_DATA') {
-        console.log("📦 REACT RECEIVED SHOPIFY DATA:", event.data);
+        const currentData = useStore.getState().shopifyData;
+        // Avoid redundant logs/updates if data is identical
+        if (currentData && JSON.stringify(currentData) === JSON.stringify(event.data)) {
+          return;
+        }
+
+        console.log("📦 REACT RECEIVED SHOPIFY DATA");
         useStore.getState().setShopifyData(event.data);
       }
     };
@@ -25,6 +31,7 @@ function App() {
     console.log("🚀 React App Mounted - Sending CONFIGURATOR_READY to Shopify");
     parent.postMessage({ type: 'CONFIGURATOR_READY' }, '*');
 
+    // Cleanup listener on unmount to prevent duplicates
     return () => {
       window.removeEventListener('message', handleMessage);
     };
