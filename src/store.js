@@ -126,49 +126,31 @@ const useStore = create((set, get) => ({
       return;
     }
 
-    const items = [];
-    const bundleId = Date.now().toString(); // Restore bundle ID for grouping
+    // 1. Collect selected screens into a single list
+    const selectedScreens = [];
+    if (state.screenA_Left) selectedScreens.push('Side A (Left)');
+    if (state.screenA_Right) selectedScreens.push('Side A (Right)');
+    if (state.screenB) selectedScreens.push('Side B');
+    if (state.screenC_Left) selectedScreens.push('Side C (Left)');
+    if (state.screenC_Right) selectedScreens.push('Side C (Right)');
+    if (state.screenD) selectedScreens.push('Side D');
 
-    // 1. Add Main Pergola
-    items.push({
+    // 2. Prepare single item payload (Main Pergola with all options in properties)
+    const items = [{
       id: mainVariant.id,
       quantity: 1,
       properties: {
         'Model': state.currentModel,
-        '_bundle_id': bundleId // Link for grouping
-        // Note: Size and Color are removed from properties because they exist as variant options
+        'Selected Screens': selectedScreens.length > 0 ? selectedScreens.join(', ') : 'None'
       }
-    });
-
-    // 2. Add Screens (Blinds)
-    const screenVariantId = state.getScreenVariantId();
-    let screenQuantity = 0;
-    const selectedScreens = [];
-
-    if (state.screenA_Left) { screenQuantity++; selectedScreens.push('Side A (Left)'); }
-    if (state.screenA_Right) { screenQuantity++; selectedScreens.push('Side A (Right)'); }
-    if (state.screenB) { screenQuantity++; selectedScreens.push('Side B'); }
-    if (state.screenC_Left) { screenQuantity++; selectedScreens.push('Side C (Left)'); }
-    if (state.screenC_Right) { screenQuantity++; selectedScreens.push('Side C (Right)'); }
-    if (state.screenD) { screenQuantity++; selectedScreens.push('Side D'); }
-
-    if (screenQuantity > 0) {
-      items.push({
-        id: screenVariantId,
-        quantity: screenQuantity,
-        properties: {
-          'Positions': selectedScreens.join(', '),
-          '_bundle_id': bundleId // Link for grouping
-        }
-      });
-    }
+    }];
 
     const payload = {
       type: 'ADD_TO_CART',
       items: items
     };
 
-    console.log("🚀 BUNDLE ADD TO CART (Cleaned):", payload);
+    console.log("🚀 SINGLE ITEM ADD TO CART:", payload);
     
     set({ isAddingToCart: true });
 
