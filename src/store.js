@@ -127,6 +127,7 @@ const useStore = create((set, get) => ({
     }
 
     const items = [];
+    const bundleId = Date.now().toString(); // Unique ID to link main product and addons together
 
     // 1. Add Main Pergola
     items.push({
@@ -135,7 +136,8 @@ const useStore = create((set, get) => ({
       properties: {
         'Model': state.currentModel,
         'Size': state.currentSize,
-        'Color': COLOR_MAP[state.frameColor] || state.frameColor
+        'Color': COLOR_MAP[state.frameColor] || state.frameColor,
+        '_bundle_id': bundleId // Hidden property for grouping
       }
     });
 
@@ -156,7 +158,8 @@ const useStore = create((set, get) => ({
         id: screenVariantId,
         quantity: screenQuantity,
         properties: {
-          'Positions': selectedScreens.join(', ')
+          'Positions': selectedScreens.join(', '),
+          '_bundle_id': bundleId // Same ID to link with the main Pergola
         }
       });
     }
@@ -166,7 +169,7 @@ const useStore = create((set, get) => ({
       items: items
     };
 
-    console.log("🚀 DYNAMIC ADD TO CART DISPATCH:", payload);
+    console.log("🚀 DYNAMIC BUNDLE ADD TO CART:", payload);
     
     set({ isAddingToCart: true });
 
