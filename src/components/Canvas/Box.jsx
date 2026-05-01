@@ -34,70 +34,78 @@ export default function Pergola() {
   }, [currentSize, currentModel])
 
   useEffect(() => {
-    if (!isMounted.current || !pergolaRef.current) return
+    const callback = window.requestIdleCallback || ((cb) => setTimeout(cb, 1))
+    const handle = callback(() => {
+      if (!isMounted.current || !pergolaRef.current) return
 
-    pergolaRef.current.traverse((child) => {
-      if (child.isMesh && child.material) {
-        // Normalize materials into an array so we handle both single and multi-material meshes
-        const materials = Array.isArray(child.material) ? child.material : [child.material]
+      pergolaRef.current.traverse((child) => {
+        if (child.isMesh && child.material) {
+          // Normalize materials into an array so we handle both single and multi-material meshes
+          const materials = Array.isArray(child.material) ? child.material : [child.material]
 
-        materials.forEach((mat) => {
-          // 1. Ensure this specific material is cached in its original state
-          if (!materialCache.current.has(mat.uuid)) {
-            materialCache.current.set(mat.uuid, {
-              color: mat.color.clone(),
-              map: mat.map,
-              transparent: mat.transparent,
-              opacity: mat.opacity
-            })
-          }
+          materials.forEach((mat) => {
+            // 1. Ensure this specific material is cached in its original state
+            if (!materialCache.current.has(mat.uuid)) {
+              materialCache.current.set(mat.uuid, {
+                color: mat.color.clone(),
+                map: mat.map,
+                transparent: mat.transparent,
+                opacity: mat.opacity
+              })
+            }
 
-          // 2. Identification logic: Fabric (Screens) vs Metal (Structure)
-          const matName = mat.name.toLowerCase()
-          const meshName = child.name.toLowerCase()
+            // 2. Identification logic: Fabric (Screens) vs Metal (Structure)
+            const matName = mat.name.toLowerCase()
+            const meshName = child.name.toLowerCase()
 
-          // FABRIC: Primary indicator is MeshPhysicalMaterial. Fallback to names if not a housing.
-          const isMetalKeywords = matName.includes('case') || matName.includes('housing') || matName.includes('frame') || meshName.includes('case') || meshName.includes('housing')
-          const isFabric = mat.isMeshPhysicalMaterial === true || ((matName.includes('screen') || matName.includes('fabric') || meshName.includes('fabric')) && !isMetalKeywords)
+            // FABRIC: Primary indicator is MeshPhysicalMaterial. Fallback to names if not a housing.
+            const isMetalKeywords = matName.includes('case') || matName.includes('housing') || matName.includes('frame') || meshName.includes('case') || meshName.includes('housing')
+            const isFabric = mat.isMeshPhysicalMaterial === true || ((matName.includes('screen') || matName.includes('fabric') || meshName.includes('fabric')) && !isMetalKeywords)
 
-          // 3. Apply the current frameColor logic
-          if (isFabric) {
-            const orig = materialCache.current.get(mat.uuid)
-            if (frameColor === '#8B5A2B') {
-              // WOOD MODE: Complete restoration
-              if (orig) {
-                mat.color.copy(orig.color)
-                mat.map = orig.map
-                mat.transparent = orig.transparent
-                mat.opacity = orig.opacity
+            // 3. Apply the current frameColor logic
+            if (isFabric) {
+              const orig = materialCache.current.get(mat.uuid)
+              if (frameColor === '#8B5A2B') {
+                // WOOD MODE: Complete restoration
+                if (orig) {
+                  mat.color.copy(orig.color)
+                  mat.map = orig.map
+                  mat.transparent = orig.transparent
+                  mat.opacity = orig.opacity
+                }
+              } else {
+                // PAINT MODE: Tint color but preserve texture and transparency
+                mat.color.set(frameColor)
+                if (orig) {
+                  mat.map = orig.map
+                  mat.transparent = true
+                  // Crucial: keep the original weave opacity so it stays "somewhat transparent"
+                  mat.opacity = orig.opacity
+                }
               }
             } else {
-              // PAINT MODE: Tint color but preserve texture and transparency
+              // METAL/CHASSIS: Solid color application
               mat.color.set(frameColor)
-              if (orig) {
-                mat.map = orig.map
-                mat.transparent = true
-                // Crucial: keep the original weave opacity so it stays "somewhat transparent"
-                mat.opacity = orig.opacity
-              }
+              mat.map = null
+              mat.transparent = false
+
+              // CRITICAL: Disable vertex colors and emissive/other maps that might be baking the "initial" look
+              if (mat.vertexColors !== undefined) mat.vertexColors = false;
+              if (mat.emissive) mat.emissive.set(0x000000);
             }
-          } else {
-            // METAL/CHASSIS: Solid color application
-            mat.color.set(frameColor)
-            mat.map = null
-            mat.transparent = false
 
-            // CRITICAL: Disable vertex colors and emissive/other maps that might be baking the "initial" look
-            if (mat.vertexColors !== undefined) mat.vertexColors = false;
-            if (mat.emissive) mat.emissive.set(0x000000);
-          }
+            if (isMounted.current) mat.needsUpdate = true
+          })
+        }
+      })
 
-          mat.needsUpdate = true
-        })
-      }
+      isReady.current = true
     })
 
-    isReady.current = true
+    return () => {
+      if (window.cancelIdleCallback) window.cancelIdleCallback(handle)
+      else clearTimeout(handle)
+    }
   }, [frameColor, currentSize, currentModel, screenA_Left, screenA_Right, screenB, screenC_Left, screenC_Right, screenD])
 
   // Use relative paths for assets to work across any FTP folder structure

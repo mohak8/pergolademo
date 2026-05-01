@@ -6,8 +6,7 @@ export default function Panel() {
     currentModel, setModel, activeSide, screenA_Left, screenA_Right, screenB, screenC_Left, screenC_Right, screenD, currentSize,
     setActiveSide, toggleScreenA_Left, toggleScreenA_Right, toggleScreenB, toggleScreenC_Left, toggleScreenC_Right, toggleScreenD, setSize,
     isBreakdownVisible, toggleBreakdown, getTotalPrice, getBasePrice, getScreenPrice,
-    frameColor, setFrameColor, activeTab, setActiveTab, availableSizes, availableColors, sizesConfig,
-    normalizePrice, addToCart
+    frameColor, setFrameColor, activeTab, setActiveTab
   } = useStore()
 
   const mainTabs = ['Model', 'Size', 'Color', 'Sides']
@@ -27,7 +26,7 @@ export default function Panel() {
 
         {/* Header */}
         <div className="mb-5">
-          <h1 className="text-xl md:text-2xl text-gray-900 font-bold tracking-tight uppercase">{currentModel}</h1>
+          <h1 className="text-xl md:text-2xl text-gray-900 font-bold tracking-tight">Pergola Setup</h1>
           <p className="text-xs md:text-sm text-gray-500 mt-1">Configure your premium space.</p>
         </div>
 
@@ -52,7 +51,7 @@ export default function Panel() {
           <section className={`${activeTab === 'Model' ? 'block animate-in fade-in slide-in-from-right-4 duration-300' : 'hidden'} md:block md:animate-none`}>
             <h2 className="text-sm text-gray-900 font-semibold mb-3">Model Type</h2>
             <div className="flex gap-3">
-              {[currentModel].map((mod) => {
+              {['Pergola', 'Product 1', 'Product 2'].map((mod) => {
                 const isActive = currentModel === mod
                 return (
                   <button
@@ -75,7 +74,7 @@ export default function Panel() {
           <section className={`${activeTab === 'Size' ? 'block animate-in fade-in slide-in-from-right-4 duration-300' : 'hidden'} md:block md:animate-none`}>
             <h2 className="text-sm text-gray-900 font-semibold mb-3">Dimensions</h2>
             <div className="flex gap-3">
-              {availableSizes.map((s) => {
+              {['3x3', '4x3', '6x3'].map((s) => {
                 const label = s.split('x').join(' x ')
                 const isActive = currentSize === s
                 return (
@@ -99,12 +98,16 @@ export default function Panel() {
           <section className={`${activeTab === 'Color' ? 'block animate-in fade-in slide-in-from-right-4 duration-300' : 'hidden'} md:block md:animate-none`}>
             <h2 className="text-sm text-gray-900 font-semibold mb-3">Frame Finish</h2>
             <div className="flex gap-3">
-              {availableColors.map((c) => {
+              {[
+                { hex: '#333333', name: 'Charcoal' },
+                { hex: '#FFFFFF', name: 'White' },
+                { hex: '#8B5A2B', name: 'Wood Finish' }
+              ].map((c) => {
                 const isActive = frameColor === c.hex
                 return (
                   <button
                     key={c.hex}
-                    onClick={() => setFrameColor(c.hex, c.name)}
+                    onClick={() => setFrameColor(c.hex)}
                     className={`py-3 px-3 flex-1 flex flex-col items-center gap-2 text-xs font-semibold rounded-xl border transition-all ${isActive
                       ? 'bg-[#F8EFEA] border-gray-900 text-gray-900 shadow-sm'
                       : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
@@ -142,47 +145,32 @@ export default function Panel() {
               <span className="text-[11px] font-medium text-gray-500 uppercase tracking-widest bg-gray-100 px-2.5 py-1 rounded-full">+ £300 each</span>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              {(() => {
-                const currentData = sizesConfig[currentSize] || {};
-                const currentSlide = currentData[`slide${activeSide}`] || [];
+              {activeSide === 'A' && currentSize === '6x3' && (
+                <>
+                  <ProductCard title="Left Screen" price={screenPriceDisplay} isOn={screenA_Left} onToggle={toggleScreenA_Left} />
+                  <ProductCard title="Right Screen" price={screenPriceDisplay} isOn={screenA_Right} onToggle={toggleScreenA_Right} />
+                </>
+              )}
+              {activeSide === 'A' && currentSize !== '6x3' && (
+                <ProductCard title="Front Screen" price={screenPriceDisplay} isOn={screenA_Left} onToggle={toggleScreenA_Left} />
+              )}
 
-                return currentSlide.map((product, index) => {
-                  let isOn = false;
-                  let onToggle = () => { };
+              {activeSide === 'B' && (
+                <ProductCard title="Side Screen" price={screenPriceDisplay} isOn={screenB} onToggle={toggleScreenB} />
+              )}
 
-                  if (activeSide === 'A') {
-                    isOn = index === 0 ? screenA_Left : screenA_Right;
-                    onToggle = index === 0 ? toggleScreenA_Left : toggleScreenA_Right;
-                  } else if (activeSide === 'B') {
-                    isOn = screenB;
-                    onToggle = toggleScreenB;
-                  } else if (activeSide === 'C') {
-                    isOn = index === 0 ? screenC_Left : screenC_Right;
-                    onToggle = index === 0 ? toggleScreenC_Left : toggleScreenC_Right;
-                  } else if (activeSide === 'D') {
-                    isOn = screenD;
-                    onToggle = toggleScreenD;
-                  }
+              {activeSide === 'C' && currentSize === '6x3' && (
+                <>
+                  <ProductCard title="Left Screen" price={screenPriceDisplay} isOn={screenC_Left} onToggle={toggleScreenC_Left} />
+                  <ProductCard title="Right Screen" price={screenPriceDisplay} isOn={screenC_Right} onToggle={toggleScreenC_Right} />
+                </>
+              )}
+              {activeSide === 'C' && currentSize !== '6x3' && (
+                <ProductCard title="Back Screen" price={screenPriceDisplay} isOn={screenC_Left} onToggle={toggleScreenC_Left} />
+              )}
 
-                  const priceVal = normalizePrice(product.price).toFixed(0);
-
-                  return (
-                    <ProductCard
-                      key={product.id || index}
-                      title={product.title}
-                      price={`+ £${priceVal}`}
-                      isOn={isOn}
-                      onToggle={onToggle}
-                      image={product.featured_image}
-                    />
-                  );
-                });
-              })()}
-
-              {(!sizesConfig[currentSize]?.[`slide${activeSide}`] || sizesConfig[currentSize]?.[`slide${activeSide}`].length === 0) && (
-                <div className="col-span-2 py-8 text-center text-gray-400 text-xs italic bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                  No accessories available for this side
-                </div>
+              {activeSide === 'D' && (
+                <ProductCard title="Side Screen" price={screenPriceDisplay} isOn={screenD} onToggle={toggleScreenD} />
               )}
             </div>
           </section>
@@ -223,10 +211,7 @@ export default function Panel() {
           </div>
         )}
 
-        <button
-          onClick={addToCart}
-          className="w-full py-3.5 bg-gray-900 hover:bg-black text-white rounded-lg text-sm font-semibold transition-all shadow-xl shadow-gray-900/20 active:scale-95 flex justify-between items-center px-5"
-        >
+        <button className="w-full py-3.5 bg-gray-900 hover:bg-black text-white rounded-lg text-sm font-semibold transition-all shadow-xl shadow-gray-900/20 active:scale-95 flex justify-between items-center px-5">
           <span>Add to Cart</span>
           <span className="font-bold tracking-wide">£{getTotalPrice()}</span>
         </button>
