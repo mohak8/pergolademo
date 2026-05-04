@@ -57,26 +57,16 @@ const useStore = create((set, get) => ({
   },
 
   setModel: (model) => {
-    if (get().currentModel === model) return
+    const isSame = get().currentModel === model;
+    get().saveHistory();
+    
+    if (isSame) {
+      set({ activeTab: 'Size' });
+      return;
+    }
+
     set({
       currentModel: model,
-      frameColor: '#333333',
-      activeSide: 'A',
-      activeTab: 'Model',
-      screenA_Left: false,
-      screenA_Right: false,
-      screenB: false,
-      screenC_Left: false,
-      screenC_Right: false,
-      screenD: false,
-      history: [] // Reset history on model change
-    })
-  },
-
-  setSize: (newSize) => {
-    if (get().currentSize === newSize) return
-    set({
-      currentSize: newSize,
       frameColor: '#333333',
       activeSide: 'A',
       activeTab: 'Size',
@@ -86,14 +76,42 @@ const useStore = create((set, get) => ({
       screenC_Left: false,
       screenC_Right: false,
       screenD: false,
-      history: [] // Reset history on size change
-    })
+    });
+  },
+
+  setSize: (newSize) => {
+    const isSame = get().currentSize === newSize;
+    get().saveHistory();
+
+    if (isSame) {
+      set({ activeTab: 'Color' });
+      return;
+    }
+
+    set({
+      currentSize: newSize,
+      frameColor: '#333333',
+      activeSide: 'A',
+      activeTab: 'Color',
+      screenA_Left: false,
+      screenA_Right: false,
+      screenB: false,
+      screenC_Left: false,
+      screenC_Right: false,
+      screenD: false,
+    });
   },
 
   setFrameColor: (hex) => {
-    if (get().frameColor === hex) return
-    get().saveHistory()
-    set({ frameColor: hex })
+    const isSame = get().frameColor === hex;
+    get().saveHistory();
+
+    if (isSame) {
+      set({ activeTab: 'Sides' });
+      return;
+    }
+
+    set({ frameColor: hex, activeTab: 'Sides' });
   },
 
   setActiveTab: (tab) => {

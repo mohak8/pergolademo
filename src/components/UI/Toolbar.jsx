@@ -1,9 +1,26 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import useStore from '../../store'
 
 function Toolbar() {
   const { showDimensions, toggleDimensions, undo, history } = useStore()
   const [menuOpen, setMenuOpen] = useState(false)
+  const menuRef = useRef(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false)
+      }
+    }
+
+    if (menuOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [menuOpen])
 
   const canGoBack = history.length > 0
 
@@ -76,7 +93,7 @@ function Toolbar() {
       </div>
 
       {/* Mobile Dropdown (kebab menu) */}
-      <div className="md:hidden fixed top-6 right-6 z-50">
+      <div className="md:hidden fixed top-6 right-6 z-50" ref={menuRef}>
         <button
           onClick={() => setMenuOpen(!menuOpen)}
           className="w-12 h-12 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center shadow-lg text-gray-800 shadow-black/10"
@@ -88,12 +105,14 @@ function Toolbar() {
 
         {menuOpen && (
           <div className="absolute top-14 right-0 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl flex flex-col p-2 gap-2 border border-gray-100 animate-in fade-in zoom-in-95">
-            {toolButtons.map(btn => (
+            {toolButtons.filter(btn => btn.id !== 'fullscreen').map(btn => (
               <button
                 key={btn.id}
                 onClick={() => {
                   btn.action()
-                  setMenuOpen(false)
+                  if (btn.id !== 'back') {
+                    setMenuOpen(false)
+                  }
                 }}
                 className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${
                   btn.active ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'

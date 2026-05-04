@@ -9,8 +9,6 @@ export default function Panel() {
     frameColor, setFrameColor, activeTab, setActiveTab, undo, history
   } = useStore()
 
-  const canGoBack = history.length > 0
-
   const sideTabs = [
     { id: 'A', label: 'Side A' },
     { id: 'B', label: 'Side B' },
@@ -19,10 +17,6 @@ export default function Panel() {
   ]
 
   const screenPriceDisplay = `+ £${getScreenPrice()}`
-
-  const handleBack = () => {
-    undo()
-  }
 
   const handleSideSelect = (sideId) => {
     setActiveSide(sideId)
@@ -39,18 +33,42 @@ export default function Panel() {
           <p className="text-xs md:text-sm text-gray-500 mt-1">Configure your premium space.</p>
         </div>
 
-        {/* Small Back Button inside the Panel (as seen in screenshot) */}
-        {canGoBack && (
-          <button
-            onClick={handleBack}
-            className="flex items-center gap-1.5 mb-5 text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors"
-          >
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-            BACK
-          </button>
-        )}
+        <style>{`
+          .hide-scroll::-webkit-scrollbar {
+            display: none;
+          }
+          .hide-scroll {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+        `}</style>
+
+        {/* Mobile Navigation Tabs */}
+        <div className="md:hidden overflow-x-auto pb-2 mb-5 -mx-4 px-4 hide-scroll">
+          <div className="flex space-x-2 w-max">
+            {[
+              { id: 'Model', label: 'Range' },
+              { id: 'Size', label: 'Pergola Size' },
+              { id: 'Color', label: 'Color' },
+              { id: 'Sides', label: 'Side Options' }
+            ].map((tab) => {
+              const isActive = activeTab === tab.id || (tab.id === 'Sides' && activeTab === 'Blinds');
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`whitespace-nowrap px-4 py-2 rounded-full text-[13px] font-bold transition-all border ${
+                    isActive 
+                      ? 'bg-black text-white border-black shadow-md' 
+                      : 'bg-gray-100 text-gray-700 border-transparent hover:bg-gray-200'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
 
         <div className="flex flex-col md:space-y-8">
           {/* VIEW: Model Selection */}
@@ -116,7 +134,7 @@ export default function Panel() {
           </section>
 
           {/* VIEW: Sides Selection */}
-          <section className={`${activeTab === 'Sides' ? 'block animate-in fade-in slide-in-from-right-4 duration-300' : 'hidden'} md:block md:animate-none`}>
+          <section className={`${(activeTab === 'Sides' || activeTab === 'Blinds') ? 'block animate-in fade-in slide-in-from-right-4 duration-300' : 'hidden'} md:block md:animate-none`}>
             <h2 className="text-sm text-gray-900 font-semibold mb-3">Orient Side</h2>
             <div className="flex gap-2 mb-6">
               {sideTabs.map((tab) => (
@@ -200,12 +218,12 @@ export default function Panel() {
             </div>
             {(screenA_Left || screenA_Right || screenB || screenC_Left || screenC_Right || screenD) && (
               <div className="border-t border-dashed border-gray-200 my-1 pt-1 flex flex-col gap-1">
-                {screenA_Left && <div className="flex justify-between text-[11px]"><span>Side A (Left)</span><span>£{getScreenPrice()}</span></div>}
-                {screenA_Right && <div className="flex justify-between text-[11px]"><span>Side A (Right)</span><span>£{getScreenPrice()}</span></div>}
-                {screenB && <div className="flex justify-between text-[11px]"><span>Side B Screen</span><span>£{getScreenPrice()}</span></div>}
-                {screenC_Left && <div className="flex justify-between text-[11px]"><span>Side C (Left)</span><span>£{getScreenPrice()}</span></div>}
-                {screenC_Right && <div className="flex justify-between text-[11px]"><span>Side C (Right)</span><span>£{getScreenPrice()}</span></div>}
-                {screenD && <div className="flex justify-between text-[11px]"><span>Side D Screen</span><span>£{getScreenPrice()}</span></div>}
+                {screenA_Left && <div className="flex justify-between text-[12px]"><span>Side A (Left)</span><span>£{getScreenPrice()}</span></div>}
+                {screenA_Right && <div className="flex justify-between text-[12px]"><span>Side A (Right)</span><span>£{getScreenPrice()}</span></div>}
+                {screenB && <div className="flex justify-between text-[12px]"><span>Side B Screen</span><span>£{getScreenPrice()}</span></div>}
+                {screenC_Left && <div className="flex justify-between text-[12px]"><span>Side C (Left)</span><span>£{getScreenPrice()}</span></div>}
+                {screenC_Right && <div className="flex justify-between text-[12px]"><span>Side C (Right)</span><span>£{getScreenPrice()}</span></div>}
+                {screenD && <div className="flex justify-between text-[12px]"><span>Side D Screen</span><span>£{getScreenPrice()}</span></div>}
               </div>
             )}
           </div>
