@@ -3,10 +3,10 @@ import useStore from '../../store'
 
 export default function Panel() {
   const {
-    currentModel, setModel, activeSide, screenA_Left, screenA_Right, screenB, screenC_Left, screenC_Right, screenD, currentSize,
+    shopifyData, currentModel, setModel, activeSide, screenA_Left, screenA_Right, screenB, screenC_Left, screenC_Right, screenD, currentSize,
     setActiveSide, toggleScreenA_Left, toggleScreenA_Right, toggleScreenB, toggleScreenC_Left, toggleScreenC_Right, toggleScreenD, setSize,
     isBreakdownVisible, toggleBreakdown, getTotalPrice, getBasePrice, getScreenPrice,
-    frameColor, setFrameColor, activeTab, setActiveTab, undo, history
+    frameColor, setFrameColor, activeTab, setActiveTab, addToCart, isAddingToCart
   } = useStore()
 
   const sideTabs = [
@@ -15,6 +15,20 @@ export default function Panel() {
     { id: 'C', label: 'Side C' },
     { id: 'D', label: 'Side D' },
   ]
+
+  // --- DYNAMIC OPTION EXTRACTION ---
+  
+  // 1. Available Sizes (e.g. ['3x3', '4x3', '6x3'])
+  const availableSizes = shopifyData?.product?.variants 
+    ? [...new Set(shopifyData.product.variants.map(v => v.option1.replace('m', '')))]
+    : ['3x3', '4x3', '6x3'];
+
+  // 2. Available Colors
+  const availableColors = [
+    { hex: '#333333', name: 'Charcoal' },
+    { hex: '#FFFFFF', name: 'White' },
+    { hex: '#8B5A2B', name: 'Wood Finish' }
+  ]; // We keep these hex mappings but we could filter based on what's in variants if needed.
 
   const screenPriceDisplay = `+ £${getScreenPrice()}`
 
@@ -29,7 +43,9 @@ export default function Panel() {
 
         {/* Header */}
         <div className="mb-5">
-          <h1 className="text-xl md:text-2xl text-gray-900 font-bold tracking-tight">Pergola Setup</h1>
+          <h1 className="text-xl md:text-2xl text-gray-900 font-bold tracking-tight">
+            {shopifyData?.product?.title || 'Pergola Setup'}
+          </h1>
           <p className="text-xs md:text-sm text-gray-500 mt-1">Configure your premium space.</p>
         </div>
 
@@ -75,18 +91,20 @@ export default function Panel() {
           <section className={`${activeTab === 'Model' ? 'block animate-in fade-in slide-in-from-right-4 duration-300' : 'hidden'} md:block md:animate-none`}>
             <h2 className="text-sm text-gray-900 font-semibold mb-3">Model Type</h2>
             <div className="flex gap-3">
-              {['Pergola', 'Product 1', 'Product 2'].map((mod) => (
-                <button
-                  key={mod}
-                  onClick={() => setModel(mod)}
-                  className={`py-3.5 px-4 text-sm font-semibold rounded-xl border transition-all text-left flex items-center justify-between ${currentModel === mod
-                    ? 'bg-[#F8EFEA] border-gray-900 text-gray-900 shadow-sm'
-                    : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400'
-                    }`}
-                >
-                  <span>{mod}</span>
-                </button>
-              ))}
+              {[shopifyData?.product?.title || 'Pergola Plus'].map((mod) => {
+                const isActive = true; // Only one product for now
+                return (
+                  <button
+                    key={mod}
+                    className={`py-3.5 px-4 text-sm font-semibold rounded-xl border transition-all text-left flex items-center justify-between ${isActive
+                      ? 'bg-[#F8EFEA] border-gray-900 text-gray-900 shadow-sm'
+                      : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400'
+                      }`}
+                  >
+                    <span>{mod}</span>
+                  </button>
+                )
+              })}
             </div>
           </section>
 
@@ -94,18 +112,22 @@ export default function Panel() {
           <section className={`${activeTab === 'Size' ? 'block animate-in fade-in slide-in-from-right-4 duration-300' : 'hidden'} md:block md:animate-none`}>
             <h2 className="text-sm text-gray-900 font-semibold mb-3">Dimensions</h2>
             <div className="flex gap-3">
-              {['3x3', '4x3', '6x3'].map((s) => (
-                <button
-                  key={s}
-                  onClick={() => setSize(s)}
-                  className={`py-3.5 px-4 text-sm font-semibold rounded-xl border transition-all text-left flex items-center justify-between ${currentSize === s
-                    ? 'bg-[#F8EFEA] border-gray-900 text-gray-900 shadow-sm'
-                    : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400'
-                    }`}
-                >
-                  <span>{s.split('x').join(' x ')}</span>
-                </button>
-              ))}
+              {availableSizes.map((s) => {
+                const label = s.split('x').join(' x ')
+                const isActive = currentSize === s
+                return (
+                  <button
+                    key={s}
+                    onClick={() => setSize(s)}
+                    className={`py-3.5 px-4 text-sm font-semibold rounded-xl border transition-all text-left flex items-center justify-between ${isActive
+                      ? 'bg-[#F8EFEA] border-gray-900 text-gray-900 shadow-sm'
+                      : 'bg-white border-gray-200 text-gray-700 hover:border-gray-400'
+                      }`}
+                  >
+                    <span>{label}</span>
+                  </button>
+                )
+              })}
             </div>
           </section>
 
@@ -113,23 +135,22 @@ export default function Panel() {
           <section className={`${activeTab === 'Color' ? 'block animate-in fade-in slide-in-from-right-4 duration-300' : 'hidden'} md:block md:animate-none`}>
             <h2 className="text-sm text-gray-900 font-semibold mb-3">Frame Finish</h2>
             <div className="flex gap-3">
-              {[
-                { hex: '#333333', name: 'Charcoal' },
-                { hex: '#FFFFFF', name: 'White' },
-                { hex: '#8B5A2B', name: 'Wood Finish' }
-              ].map((c) => (
-                <button
-                  key={c.hex}
-                  onClick={() => setFrameColor(c.hex)}
-                  className={`py-3 px-3 flex-1 flex flex-col items-center gap-2 text-xs font-semibold rounded-xl border transition-all ${frameColor === c.hex
-                    ? 'bg-[#F8EFEA] border-gray-900 text-gray-900 shadow-sm'
-                    : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
-                    }`}
-                >
-                  <div className="w-8 h-8 rounded-full shadow-sm border border-gray-300" style={{ backgroundColor: c.hex }}></div>
-                  <span>{c.name}</span>
-                </button>
-              ))}
+              {availableColors.map((c) => {
+                const isActive = frameColor === c.hex
+                return (
+                  <button
+                    key={c.hex}
+                    onClick={() => setFrameColor(c.hex)}
+                    className={`py-3 px-3 flex-1 flex flex-col items-center gap-2 text-xs font-semibold rounded-xl border transition-all ${isActive
+                      ? 'bg-[#F8EFEA] border-gray-900 text-gray-900 shadow-sm'
+                      : 'bg-white border-gray-200 text-gray-600 hover:border-gray-400'
+                      }`}
+                  >
+                    <div className="w-8 h-8 rounded-full shadow-sm border border-gray-300" style={{ backgroundColor: c.hex }}></div>
+                    <span>{c.name}</span>
+                  </button>
+                )
+              })}
             </div>
           </section>
 
@@ -229,9 +250,29 @@ export default function Panel() {
           </div>
         )}
 
-        <button className="w-full py-3.5 bg-gray-900 hover:bg-black text-white rounded-lg text-sm font-semibold transition-all shadow-xl shadow-gray-900/20 active:scale-95 flex justify-between items-center px-5">
-          <span>Add to Cart</span>
-          <span className="font-bold tracking-wide">£{getTotalPrice()}</span>
+        <button 
+          onClick={addToCart} 
+          disabled={isAddingToCart}
+          className={`w-full py-3.5 rounded-lg text-sm font-semibold transition-all shadow-xl active:scale-95 flex justify-between items-center px-5 ${
+            isAddingToCart 
+            ? 'bg-gray-400 cursor-not-allowed shadow-none' 
+            : 'bg-gray-900 hover:bg-black text-white shadow-gray-900/20'
+          }`}
+        >
+          {isAddingToCart ? (
+            <div className="flex items-center gap-2">
+              <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Adding to Cart...</span>
+            </div>
+          ) : (
+            <>
+              <span>Add to Cart</span>
+              <span className="font-bold tracking-wide">£{getTotalPrice()}</span>
+            </>
+          )}
         </button>
       </div>
 
