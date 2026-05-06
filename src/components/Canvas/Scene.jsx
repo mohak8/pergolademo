@@ -9,6 +9,7 @@ export default function Scene() {
   const controlsRef = useRef()
   const activeSide = useStore((state) => state.activeSide)
   const currentSize = useStore((state) => state.currentSize)
+  const cameraTrigger = useStore((state) => state.cameraTrigger)
 
   useEffect(() => {
     if (controlsRef.current) {
@@ -16,7 +17,7 @@ export default function Scene() {
       const zOffset = currentSize === '6x3' ? 6.5 : 4.8
       controlsRef.current.setLookAt(0, 1, zOffset, 0, 0, 0, true)
     }
-  }, [activeSide, currentSize])
+  }, [activeSide, currentSize, cameraTrigger])
 
   return (
     <Canvas

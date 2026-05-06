@@ -138,6 +138,9 @@ const useStore = create((set, get) => ({
 
   toggleDimensions: () => set((state) => ({ showDimensions: !state.showDimensions })),
   toggleBreakdown: () => set((state) => ({ isBreakdownVisible: !state.isBreakdownVisible })),
+  
+  cameraTrigger: 0,
+  triggerCameraReset: () => set((state) => ({ cameraTrigger: state.cameraTrigger + 1 })),
 
   // ─── DYNAMIC HELPERS ──────────────────────────────────────────────
 
