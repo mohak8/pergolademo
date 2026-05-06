@@ -142,6 +142,12 @@ const useStore = create((set, get) => ({
   cameraTrigger: 0,
   triggerCameraReset: () => set((state) => ({ cameraTrigger: state.cameraTrigger + 1 })),
 
+  // AR States
+  isARModalOpen: false,
+  setIsARModalOpen: (val) => set({ isARModalOpen: val }),
+  triggerARMode: 0,
+  launchAR: () => set((state) => ({ triggerARMode: state.triggerARMode + 1 })),
+
   // ─── DYNAMIC HELPERS ──────────────────────────────────────────────
 
   // Finds the Shopify variant based on our internal size (e.g. '3x3' matches '3x3m') and color

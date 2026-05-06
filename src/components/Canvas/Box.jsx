@@ -304,7 +304,7 @@ export default function Pergola() {
       </Html>
 
       {/* Main Model wrapper for isolating bounding box computation completely */}
-      <group ref={pergolaRef}>
+      <group ref={pergolaRef} name="pergolaGroup">
         {/* Main Framework */}
         <primitive
           object={frame}

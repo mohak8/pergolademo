@@ -2,6 +2,7 @@ import React, { useEffect } from 'react'
 import { Loader } from '@react-three/drei'
 import Panel from './components/UI/Panel'
 import Toolbar from './components/UI/Toolbar'
+import QRModal from './components/UI/QRModal'
 import Scene from './components/Canvas/Scene'
 import useStore from './store'
 
@@ -37,6 +38,36 @@ function App() {
     };
   }, []);
 
+  // Parse AR URL Parameters on load
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('ar') === 'true') {
+      const state = useStore.getState()
+      
+      const size = params.get('size')
+      if (size) state.setSize(size)
+      
+      const color = params.get('color')
+      if (color) state.setFrameColor(decodeURIComponent(color))
+      
+      const screensStr = params.get('screens') || ''
+      const screens = screensStr.split(',')
+      
+      if (screens.includes('A_L') && !state.screenA_Left) state.toggleScreenA_Left()
+      if (screens.includes('A_R') && !state.screenA_Right) state.toggleScreenA_Right()
+      if (screens.includes('B') && !state.screenB) state.toggleScreenB()
+      if (screens.includes('C_L') && !state.screenC_Left) state.toggleScreenC_Left()
+      if (screens.includes('C_R') && !state.screenC_Right) state.toggleScreenC_Right()
+      if (screens.includes('D') && !state.screenD) state.toggleScreenD()
+
+      // Automatically launch AR mode since they just scanned it from mobile
+      // We give it a tiny delay to ensure the scene finishes loading first
+      setTimeout(() => {
+        state.launchAR()
+      }, 2000)
+    }
+  }, [])
+
   return (
     <>
       <Loader
@@ -53,6 +84,7 @@ function App() {
         </div>
         <Toolbar />
       </div>
+      <QRModal />
     </>
   )
 }

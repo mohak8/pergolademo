@@ -3,6 +3,7 @@ import { Canvas } from '@react-three/fiber'
 import { ContactShadows, Environment, CameraControls } from '@react-three/drei'
 import * as THREE from 'three'
 import Box from './Box' // This holds our modular Pergola assembly
+import ARHandler from './ARHandler'
 import useStore from '../../store'
 
 export default function Scene() {
@@ -40,6 +41,7 @@ export default function Scene() {
       <Suspense fallback={null}>
         <Environment preset="city" />
         <Box />
+        <ARHandler />
       </Suspense>
 
 

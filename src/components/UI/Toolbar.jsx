@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import useStore from '../../store'
 
 function Toolbar() {
-  const { showDimensions, toggleDimensions, undo, history, triggerCameraReset } = useStore()
+  const { showDimensions, toggleDimensions, undo, history, triggerCameraReset, launchAR, setIsARModalOpen } = useStore()
   const [menuOpen, setMenuOpen] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const menuRef = useRef(null)
@@ -78,7 +78,14 @@ function Toolbar() {
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" className="w-6 h-6" aria-hidden="true"><path stroke="currentColor" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round" d="m21 6.923-2.25-1.481M21 6.923v2.539m0-2.539-2.25 1.481M3 6.924l2.25-1.482M3 6.923l2.25 1.481M3 6.924v2.538m9 3.384 2.25-1.481M12 12.846l-2.25-1.481M12 12.846v2.539M12 23l2.25-1.481M12 23v-2.538M12 23l-2.25-1.481m0-19.039L12 1l2.25 1.481M21 14.54v2.538l-2.25 1.481m-13.5 0L3 17.077v-2.539"></path></svg>
       ),
-      action: () => console.log('AR Mode')
+      action: () => {
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+        if (isMobile) {
+          launchAR()
+        } else {
+          setIsARModalOpen(true)
+        }
+      }
     },
     {
       id: 'center',
