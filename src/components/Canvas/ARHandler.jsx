@@ -45,6 +45,7 @@ export default function ARHandler() {
             const viewer = document.createElement('model-viewer')
             viewer.src = url
             viewer.ar = true
+            viewer.setAttribute('ar-scale', 'fixed')
             viewer.arModes = "webxr scene-viewer quick-look"
 
             // model-viewer v3+ automatically converts GLB to USDZ on iOS via local WASM!
