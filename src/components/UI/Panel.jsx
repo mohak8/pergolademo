@@ -43,12 +43,12 @@ export default function Panel() {
   }
 
   return (
-    <div className="pointer-events-auto w-full md:w-[420px] md:m-6 md:rounded-3xl shrink-0 bg-slate-950/70 backdrop-blur-sm md:border border-white/10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] z-20 flex flex-col font-sans h-[45vh] md:h-[calc(100vh-48px)] relative overflow-hidden order-last md:order-first mt-auto transition-all duration-500 ease-in-out pb-[env(safe-area-inset-bottom)] rounded-t-3xl md:rounded-b-3xl border-t">
-      <div className="p-5 md:p-7 pb-32 md:pb-40 overflow-y-auto flex-1 hide-scroll">
+    <div className="pointer-events-auto w-full lg:w-[420px] lg:m-6 lg:rounded-3xl shrink-0 bg-slate-950/70 backdrop-blur-sm lg:border border-white/10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] z-20 flex flex-col font-sans h-[40vh] lg:h-[calc(100vh-48px)] relative overflow-hidden order-last lg:order-first mt-auto transition-all duration-500 ease-in-out pb-[env(safe-area-inset-bottom)] rounded-t-3xl lg:rounded-b-3xl border-t">
+      <div className="p-5 lg:p-7 pb-32 lg:pb-40 overflow-y-auto flex-1 hide-scroll">
 
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl md:text-3xl text-white font-extrabold tracking-tight drop-shadow-sm">
+          <h1 className="text-2xl lg:text-3xl text-white font-extrabold tracking-tight drop-shadow-sm">
             {shopifyData?.product?.title || 'Pergola Setup'}
           </h1>
           <p className="text-sm text-slate-300 mt-1.5 font-medium">Configure your premium space.</p>
@@ -60,7 +60,7 @@ export default function Panel() {
         `}</style>
 
         {/* Mobile Navigation Tabs */}
-        <div className="md:hidden overflow-x-auto pb-4 mb-2 -mx-5 px-5 hide-scroll flex space-x-2">
+        <div className="lg:hidden overflow-x-auto pb-4 mb-2 -mx-5 px-5 hide-scroll flex space-x-2">
           {[
             { id: 'Model', label: 'Range' },
             { id: 'Size', label: 'Size' },
@@ -83,9 +83,9 @@ export default function Panel() {
           })}
         </div>
 
-        <div className="flex flex-col md:space-y-10">
+        <div className="flex flex-col lg:space-y-10">
           {/* VIEW: Model Selection */}
-          <section className={`${activeTab === 'Model' ? 'block animate-in fade-in slide-in-from-right-4 duration-500' : 'hidden'} md:block md:animate-none`}>
+          <section className={`${activeTab === 'Model' ? 'block animate-in fade-in slide-in-from-right-4 duration-500' : 'hidden'} lg:block lg:animate-none`}>
             <h2 className="text-sm text-slate-100 font-bold mb-3 uppercase tracking-wider drop-shadow-sm">Model Type</h2>
             <div className="flex flex-wrap gap-3">
               {[shopifyData?.product?.title || 'Pergola Plus'].map((mod) => {
@@ -102,7 +102,7 @@ export default function Panel() {
           </section>
 
           {/* VIEW: Size Selection */}
-          <section className={`${activeTab === 'Size' ? 'block animate-in fade-in slide-in-from-right-4 duration-500' : 'hidden'} md:block md:animate-none`}>
+          <section className={`${activeTab === 'Size' ? 'block animate-in fade-in slide-in-from-right-4 duration-500' : 'hidden'} lg:block lg:animate-none`}>
             <h2 className="text-sm text-slate-100 font-bold mb-3 uppercase tracking-wider drop-shadow-sm">Dimensions</h2>
             <div className="flex flex-wrap gap-2 bg-black/20 p-2 rounded-2xl backdrop-blur-sm border border-white/5 shadow-inner">
               {availableSizes.map((s) => {
@@ -125,9 +125,9 @@ export default function Panel() {
           </section>
 
           {/* VIEW: Color Selection */}
-          <section className={`${activeTab === 'Color' ? 'block animate-in fade-in slide-in-from-right-4 duration-500' : 'hidden'} md:block md:animate-none`}>
+          <section className={`${activeTab === 'Color' ? 'block animate-in fade-in slide-in-from-right-4 duration-500' : 'hidden'} lg:block lg:animate-none`}>
             <h2 className="text-sm text-slate-100 font-bold mb-3 uppercase tracking-wider drop-shadow-sm">Frame Finish</h2>
-            <div className="flex flex-wrap gap-3">
+            <div className="grid grid-cols-3 gap-3">
               {availableFinishes.map((finish) => {
                 const isActive = frameColor === finish.value
                 return (
@@ -154,7 +154,7 @@ export default function Panel() {
           </section>
 
           {/* VIEW: Sides Selection */}
-          <section className={`${(activeTab === 'Sides' || activeTab === 'Blinds') ? 'block animate-in fade-in slide-in-from-right-4 duration-500' : 'hidden'} md:block md:animate-none`}>
+          <section className={`${(activeTab === 'Sides' || activeTab === 'Blinds') ? 'block animate-in fade-in slide-in-from-right-4 duration-500' : 'hidden'} lg:block lg:animate-none`}>
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm text-slate-100 font-bold uppercase tracking-wider drop-shadow-sm">Orient Side</h2>
             </div>

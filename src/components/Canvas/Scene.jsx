@@ -11,12 +11,16 @@ function ViewportOffset() {
   const { camera, size } = useThree()
   
   useEffect(() => {
-    if (size.width >= 768) {
-      // The panel is ~420px wide on desktop. 
-      // Offsetting by -210px (half panel width) perfectly centers the model in the remaining empty space.
+    if (size.width >= 1024) {
+      // Desktop: The panel is ~420px wide on the left. 
+      // Offsetting by -210px perfectly centers the model horizontally.
       camera.setViewOffset(size.width, size.height, -210, 0, size.width, size.height)
     } else {
-      camera.clearViewOffset()
+      // Mobile/Tablet: The bottom-sheet takes up 40vh.
+      // We offset the projection matrix vertically by 20% to push the model UP 
+      // so it centers perfectly in the top 60% of the screen.
+      const yOffset = size.height * 0.20
+      camera.setViewOffset(size.width, size.height, 0, yOffset, size.width, size.height)
     }
     camera.updateProjectionMatrix()
   }, [camera, size.width, size.height])
