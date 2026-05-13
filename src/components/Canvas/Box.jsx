@@ -27,6 +27,28 @@ export default function Pergola() {
     }
   }, [])
 
+  // Dynamic Texture Loader (Handles JSON paths vs Hex Codes)
+  const [dynamicTexture, setDynamicTexture] = useState(null);
+
+  useEffect(() => {
+    // If the frameColor looks like a file path or URL, load it dynamically
+    const isTexturePath = frameColor.includes('/') || frameColor.includes('.');
+    
+    if (isTexturePath) {
+      new THREE.TextureLoader().load(frameColor, (tex) => {
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+        tex.repeat.set(12, 12); // Prevent stretching
+        tex.anisotropy = 16;
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.needsUpdate = true;
+        if (isMounted.current) setDynamicTexture(tex);
+      });
+    } else {
+      setDynamicTexture(null);
+    }
+  }, [frameColor])
+
   useEffect(() => {
     // Force clear the cache when the core model size changes to prevent stale data
     materialCache.current.clear()
@@ -63,10 +85,12 @@ export default function Pergola() {
           const isFabric = mat.isMeshPhysicalMaterial === true || ((matName.includes('screen') || matName.includes('fabric') || meshName.includes('fabric')) && !isMetalKeywords)
 
           // 3. Apply the current frameColor logic
+          const isTexture = frameColor.includes('/') || frameColor.includes('.');
+
           if (isFabric) {
             const orig = materialCache.current.get(mat.uuid)
-            if (frameColor === '#8B5A2B') {
-              // WOOD MODE: Complete restoration
+            if (isTexture) {
+              // WOOD/TEXTURE MODE: Complete restoration for fabrics
               if (orig) {
                 mat.color.copy(orig.color)
                 mat.map = orig.map
@@ -82,8 +106,25 @@ export default function Pergola() {
                 mat.opacity = orig.opacity
               }
             }
-          } else {
-            // METAL/CHASSIS: Solid color application
+          } else if (matName.includes('roof') && isTexture) {
+            // ROOF: Preserve original color from GLB file ONLY when a texture mode is applied
+            const orig = materialCache.current.get(mat.uuid)
+            if (orig) {
+              mat.color.copy(orig.color)
+              mat.map = orig.map
+              mat.transparent = orig.transparent
+              mat.opacity = orig.opacity
+            }
+          } else if (isTexture && dynamicTexture) {
+            // METAL/CHASSIS: Apply Dynamic Texture
+            mat.color.set('#ffffff') // Reset base color so texture is visible naturally
+            mat.map = dynamicTexture
+            mat.transparent = false
+
+            if (mat.vertexColors !== undefined) mat.vertexColors = false;
+            if (mat.emissive) mat.emissive.set(0x000000);
+          } else if (!isTexture) {
+            // METAL/CHASSIS & ROOF (non-wood): Solid color application
             mat.color.set(frameColor)
             mat.map = null
             mat.transparent = false
@@ -98,7 +139,7 @@ export default function Pergola() {
     })
 
     isReady.current = true
-  }, [frameColor, currentSize, currentModel, screenA_Left, screenA_Right, screenB, screenC_Left, screenC_Right, screenD])
+  }, [frameColor, dynamicTexture, currentSize, currentModel, screenA_Left, screenA_Right, screenB, screenC_Left, screenC_Right, screenD])
 
   // Use relative paths for assets to work across any FTP folder structure
   const rootPath = 'pergola'

@@ -77,12 +77,14 @@ function App() {
         dataInterpolation={(p) => `LOADING... ${p.toFixed(0)}%`}
         dataStyles={{ fontSize: '13px', fontWeight: 'bold', letterSpacing: '0.1em', color: '#0f172a', textTransform: 'uppercase' }}
       />
-      <div className="relative h-screen w-full flex flex-col md:flex-row font-sans bg-gray-100 overflow-hidden text-slate-800">
-        <Panel />
-        <div className="h-[60vh] md:h-screen w-full flex-1 relative z-0">
+      <div className="relative h-[100dvh] w-full font-sans bg-[#f4f4f5] overflow-hidden text-slate-800">
+        <div className="absolute inset-0 z-0">
           <Scene />
         </div>
-        <Toolbar />
+        <div className="absolute inset-0 z-10 w-full h-full pointer-events-none flex flex-col md:flex-row justify-between">
+          <Panel />
+          <Toolbar />
+        </div>
       </div>
       <QRModal />
     </>

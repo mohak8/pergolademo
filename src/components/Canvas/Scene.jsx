@@ -1,10 +1,28 @@
 import React, { Suspense, useRef, useEffect } from 'react'
-import { Canvas } from '@react-three/fiber'
+import { Canvas, useThree } from '@react-three/fiber'
 import { ContactShadows, Environment, CameraControls } from '@react-three/drei'
 import * as THREE from 'three'
 import Box from './Box' // This holds our modular Pergola assembly
 import ARHandler from './ARHandler'
 import useStore from '../../store'
+
+// Sub-component to manipulate the projection matrix safely without breaking OrbitControls
+function ViewportOffset() {
+  const { camera, size } = useThree()
+  
+  useEffect(() => {
+    if (size.width >= 768) {
+      // The panel is ~420px wide on desktop. 
+      // Offsetting by -210px (half panel width) perfectly centers the model in the remaining empty space.
+      camera.setViewOffset(size.width, size.height, -210, 0, size.width, size.height)
+    } else {
+      camera.clearViewOffset()
+    }
+    camera.updateProjectionMatrix()
+  }, [camera, size.width, size.height])
+
+  return null
+}
 
 export default function Scene() {
   const controlsRef = useRef()
@@ -40,6 +58,7 @@ export default function Scene() {
 
       <Suspense fallback={null}>
         <Environment preset="city" />
+        <ViewportOffset />
         <Box />
         <ARHandler />
       </Suspense>

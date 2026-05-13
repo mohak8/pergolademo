@@ -61,7 +61,6 @@ const useStore = create((set, get) => ({
 
   setModel: (model) => {
     const isSame = get().currentModel === model;
-    get().saveHistory();
     
     if (isSame) {
       set({ activeTab: 'Size' });
@@ -69,6 +68,7 @@ const useStore = create((set, get) => ({
     }
 
     set({
+      history: [],
       currentModel: model,
       frameColor: '#333333',
       activeSide: 'A',
@@ -84,7 +84,6 @@ const useStore = create((set, get) => ({
 
   setSize: (newSize) => {
     const isSame = get().currentSize === newSize;
-    get().saveHistory();
 
     if (isSame) {
       set({ activeTab: 'Color' });
@@ -92,6 +91,7 @@ const useStore = create((set, get) => ({
     }
 
     set({
+      history: [],
       currentSize: newSize,
       frameColor: '#333333',
       activeSide: 'A',

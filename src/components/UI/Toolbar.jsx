@@ -31,7 +31,7 @@ function Toolbar() {
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
-      document.documentElement.requestFullscreen().catch(() => {})
+      document.documentElement.requestFullscreen().catch(() => { })
     } else if (document.exitFullscreen) {
       document.exitFullscreen()
     }
@@ -100,7 +100,7 @@ function Toolbar() {
   return (
     <>
       {/* Desktop Column */}
-      <div className="hidden md:flex fixed right-6 top-1/2 -translate-y-1/2 flex-col gap-4 z-50">
+      <div className="hidden md:flex fixed right-6 top-1/2 -translate-y-1/2 flex-col gap-4 z-50 pointer-events-auto">
         {toolButtons.map(btn => (
           <div key={btn.id} className="relative group flex items-center">
             <button
@@ -126,7 +126,7 @@ function Toolbar() {
       </div>
 
       {/* Mobile Dropdown (kebab menu) */}
-      <div className="md:hidden fixed top-6 right-6 z-50" ref={menuRef}>
+      <div className="md:hidden fixed top-6 right-6 z-50 pointer-events-auto" ref={menuRef}>
         <button
           onClick={() => setMenuOpen(!menuOpen)}
           className="w-12 h-12 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center shadow-lg text-gray-800 shadow-black/10"
