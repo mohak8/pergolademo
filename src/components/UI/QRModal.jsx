@@ -3,19 +3,19 @@ import { QRCodeSVG } from 'qrcode.react'
 import useStore from '../../store'
 
 export default function QRModal() {
-  const { 
-    isARModalOpen, 
-    setIsARModalOpen, 
-    currentSize, 
-    frameColor, 
-    screenA_Left, 
-    screenA_Right, 
-    screenB, 
-    screenC_Left, 
-    screenC_Right, 
-    screenD 
+  const {
+    isARModalOpen,
+    setIsARModalOpen,
+    currentSize,
+    frameColor,
+    screenA_Left,
+    screenA_Right,
+    screenB,
+    screenC_Left,
+    screenC_Right,
+    screenD
   } = useStore()
-  
+
   const [arUrl, setArUrl] = useState('')
 
   useEffect(() => {
@@ -43,9 +43,9 @@ export default function QRModal() {
   if (!isARModalOpen) return null
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-100 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl p-6 md:p-8 max-w-sm w-full shadow-2xl relative animate-in fade-in zoom-in-95 duration-300">
-        <button 
+        <button
           onClick={() => setIsARModalOpen(false)}
           className="absolute top-4 right-4 text-gray-400 hover:text-gray-800 transition-colors"
         >
@@ -53,7 +53,7 @@ export default function QRModal() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-        
+
         <div className="text-center mb-6">
           <h2 className="text-2xl font-bold text-gray-900 mb-2">View in AR</h2>
           <p className="text-sm text-gray-500">Scan this code with your mobile device's camera to view your exact pergola configuration in your backyard.</p>

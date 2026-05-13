@@ -12,7 +12,7 @@ function App() {
     const handleMessage = (event) => {
       // Allow localhost for testing or vercel domain
       const allowedOrigins = ['https://pergolademo.vercel.app', 'http://localhost:5173'];
-      
+
       if (event.data && event.data.type === 'SHOPIFY_PRODUCT_DATA') {
         const currentData = useStore.getState().shopifyData;
         // Avoid redundant logs/updates if data is identical
@@ -43,16 +43,16 @@ function App() {
     const params = new URLSearchParams(window.location.search)
     if (params.get('ar') === 'true') {
       const state = useStore.getState()
-      
+
       const size = params.get('size')
       if (size) state.setSize(size)
-      
+
       const color = params.get('color')
       if (color) state.setFrameColor(decodeURIComponent(color))
-      
+
       const screensStr = params.get('screens') || ''
       const screens = screensStr.split(',')
-      
+
       if (screens.includes('A_L') && !state.screenA_Left) state.toggleScreenA_Left()
       if (screens.includes('A_R') && !state.screenA_Right) state.toggleScreenA_Right()
       if (screens.includes('B') && !state.screenB) state.toggleScreenB()
@@ -77,7 +77,7 @@ function App() {
         dataInterpolation={(p) => `LOADING... ${p.toFixed(0)}%`}
         dataStyles={{ fontSize: '13px', fontWeight: 'bold', letterSpacing: '0.1em', color: '#0f172a', textTransform: 'uppercase' }}
       />
-      <div className="relative h-[100dvh] w-full font-sans bg-[#f4f4f5] overflow-hidden text-slate-800">
+      <div className="relative h-dvh w-full font-sans bg-[#f4f4f5] overflow-hidden text-slate-800">
         <div className="absolute inset-0 z-0">
           <Scene />
         </div>

@@ -43,7 +43,7 @@ export default function Panel() {
   }
 
   return (
-    <div className="pointer-events-auto w-full md:w-[420px] md:m-6 md:rounded-3xl flex-shrink-0 bg-slate-950/70 backdrop-blur-sm md:border border-white/10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] z-20 flex flex-col font-sans h-[45vh] md:h-[calc(100vh-48px)] relative overflow-hidden order-last md:order-first mt-auto transition-all duration-500 ease-in-out pb-[env(safe-area-inset-bottom)] rounded-t-3xl md:rounded-b-3xl border-t">
+    <div className="pointer-events-auto w-full md:w-[420px] md:m-6 md:rounded-3xl shrink-0 bg-slate-950/70 backdrop-blur-sm md:border border-white/10 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)] z-20 flex flex-col font-sans h-[45vh] md:h-[calc(100vh-48px)] relative overflow-hidden order-last md:order-first mt-auto transition-all duration-500 ease-in-out pb-[env(safe-area-inset-bottom)] rounded-t-3xl md:rounded-b-3xl border-t">
       <div className="p-5 md:p-7 pb-32 md:pb-40 overflow-y-auto flex-1 hide-scroll">
 
         {/* Header */}

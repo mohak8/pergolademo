@@ -155,7 +155,7 @@ function Toolbar() {
                     : 'bg-transparent text-gray-800 hover:bg-gray-100'
                   }`}
               >
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                   {btn.icon}
                 </div>
                 <span className="font-medium text-sm whitespace-nowrap">
